@@ -1,0 +1,5 @@
+var Resource = Spine.Model.sub();
+
+Resource.configure("Resource", "title", "date", "section_id", "nid", "created", "url", "resource_type");
+
+

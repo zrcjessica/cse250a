@@ -1,0 +1,206 @@
+/*
+ * Piazza Template Manager
+ *
+ */
+var PTM = {
+  templates: {},
+
+  getTemplate: function(name, callback, options) {
+    if (PTM.templates[name]) {
+      if (callback)
+        callback.call(window, PTM.templates[name], options);
+      return PTM.templates[name];
+    }
+    else {
+      P.modules.load("/modules/shared_templates/" + name + ".html", 1, function(html) {
+        PTM.templates[name] = Handlebars.compile(html);
+        if (callback)
+          callback.call(window, PTM.templates[name], options);
+      }, function(err) {alert(err)});
+    }
+    return null;
+  },
+  getAngularTemplate: function(name, callback, options) {
+    if (PTM.templates[name]) {
+      if (callback)
+        callback.call(window, PTM.templates[name], options);
+      return PTM.templates[name];
+    }
+    else {
+      P.modules.load("/modules/shared_templates/" + name + ".html", 1, function(html) {
+        PTM.templates[name] = html;
+        if (callback)
+          callback.call(window, PTM.templates[name], options);
+      }, function(err) {alert(err)});
+    }
+    return null;
+  },  
+  createTemplate: function(name, html) {
+    PTM.templates[name] = Handlebars.compile(html);
+    return PTM.templates[name];
+  },
+  getModuleTemplate: function(moduleName, name, callback, options) {
+    if (PTM.templates[moduleName + ":" + name]) {
+      if (callback)
+        callback.call(window, PTM.templates[moduleName + ":" + name], options);
+      return PTM.templates[moduleName + ":" + name];
+    }
+    else {
+      P.modules.load("/modules/" + moduleName + "/" + name + ".html", 1, function(html) {
+        if (!options) options = {};
+        options.html = html;
+        PTM.templates[moduleName + ":" + name] = Handlebars.compile(html);
+        if (callback)
+          callback.call(window, PTM.templates[moduleName + ":" + name], options);
+      }, function(err) {alert(err)});
+    }
+    return null;
+  },
+  createModuleTemplate: function(moduleName, name, html) {
+    PTM.templates[moduleName + ":" + name] = Handlebars.compile(html);
+    return PTM.templates[moduleName + ":" + name];
+  },
+
+  init: function() {
+    Handlebars.registerHelper('toRelativeTime', function(time) {
+      if (!time) return "";
+      return time.toRelativeTime();
+    });
+    Handlebars.registerHelper('limitChars', function(msg) {
+      if (!msg) return "";
+      if (msg.length < 50) return msg;
+      return msg.substring(0, 48) + "...";
+    });
+    Handlebars.registerHelper('toUserName', function(uid, anon) {
+      if (typeof(anon) != "string") anon = "no";
+      return PA.getUserName(uid, anon);
+    });
+    Handlebars.registerHelper('toUserPic', function(uid) {
+      return PA.getUserPic(uid);
+    });
+    // ifContains <array> <element> -> render if array contains given element
+    Handlebars.registerHelper('ifContains', function(array, element, options) {
+      if (!array) return options.inverse(this);
+      if (array.exist(element)) return options.fn(this);
+      return options.inverse(this);
+    });
+    Handlebars.registerHelper('ifEquals', function(str1, str2, options) {
+      if (str1 == str2)
+        return options.fn(this);
+      return options.inverse(this);
+    });
+    Handlebars.registerHelper('ifNotEquals', function(str1, str2, options) {
+      if (str1 != str2)
+        return options.fn(this);
+      return options.inverse(this);
+    });
+    Handlebars.registerHelper('ifGreater', function(str1, str2, options) {
+      if (str1 > str2)
+        return options.fn(this);
+      return options.inverse(this);
+    });
+    Handlebars.registerHelper('ifOr', function(v1, v2, options) {
+      if(v1 || v2) {
+        return options.fn(this);
+      }
+      return options.inverse(this);
+    });
+    Handlebars.registerHelper('pluralizator', function(element, singular, plural) {
+      if (parseInt(element) > 1) return plural;
+      return singular;
+    });
+    Handlebars.registerHelper('processText', function(element, type) {
+      if (P.note_view.content.config && P.note_view.content.config.student_product)
+        return element;
+      return PEM.callFirst("makeHtml", {text:element, type:type});
+    });
+    Handlebars.registerHelper('extensionIcon', function(element) {
+      return getFileTypeIcon(element);
+    });
+    Handlebars.registerHelper('isImage', function(element, options) {
+      if (isFileTypeImage(element))
+        return options.fn(this);
+      return "";
+    });
+    Handlebars.registerHelper('networkName', function(nid) {
+      var name = "-unknown-";
+      if (P.modules.user) {
+        for (var i = 0; i < P.modules.user.networks.length; i++)
+          if (P.modules.user.networks[i].id == nid) {
+            name = P.modules.user.networks[i].name;
+            break;
+          }
+      }
+      return name;
+    });
+    Handlebars.registerHelper('attachment', function(attach, content, network) {
+      if (PTM.templates["attachment"]) {
+        ATTACHMENTS[attach.id] = attach;
+        return PTM.templates["attachment"]({attach:attach, content:content, network:network});
+      }
+      return "";
+    });
+    Handlebars.registerHelper('folderlist', function(folders) {
+      var html = "";
+      if (!folders) return html;
+      for (var i = 0; i < folders.length; i++) {
+        html += '<span data-pats="folders_item"><a data-pats="link" href="#" class="tag folder" onclick="PEM.fire(\'filterFeed\', {filter:\'folder\',folder:\'' + folders[i] + '\'});return false;">' + folders[i] + '</a></span>';
+      }
+      return html;
+    });
+    Handlebars.registerHelper('showOthers', function(others) {
+      if (!others) return "";
+      if (others.length == 0) return "";
+      if (others.length == 1) {
+        return "and " + PA.getUserName(others[0]);
+      } else {
+        return "and " + PA.getOthersList(others);
+      }
+      return "";
+    });
+    Handlebars.registerHelper('ifIsOdd', function(num, options) {
+      if (num % 2 == 1) return options.fn(this);
+      return "";
+    });
+    Handlebars.registerHelper('ifIsEmpty', function(arr, options) {
+      if (!arr || arr.length == 0) return options.fn(this);
+      return "";
+    });
+    Handlebars.registerHelper('showCompanyUsers', function(arr, options) {
+      var names = [];
+      if (typeof(COMPANY_USERS) != 'undefined' && COMPANY_USERS && arr && arr.length > 0) {
+        for (var i = 0; i < arr.length; i++) {
+          if (COMPANY_USERS[arr[i]]) names.push(COMPANY_USERS[arr[i]].name);
+        }
+      }
+      if (names.length > 0)
+        return "<span class='company_user_list' tipsy='" + names.join("<br/>") + "'>" + options.fn(this) + "</span>";
+      return "<span class='company_user_list'>" + options.fn(this) + "</span>";
+    });
+    Handlebars.registerHelper('showCompanyUserName', function(id, options) {
+      if (typeof(COMPANY_USERS) != 'undefined' && COMPANY_USERS && id) {
+        if (COMPANY_USERS[id]) return COMPANY_USERS[id].name;
+      }
+      return "";
+    });
+    Handlebars.registerHelper('timestampFormat', function(time, format, options) {
+      var date = new Date();
+      date.setTime(time);
+      return date.format(format);
+    });
+    var companyActions = {
+      "view_profile":"Viewed profile",
+      "request_resume":"Requested resume",
+      "note":"Added a note",
+      "tag":"Tagged student with ",
+      "status":"Changed Status ",
+      "send_message":"Messaged student "
+    };
+    Handlebars.registerHelper('showCompanyAction', function(action, options) {
+      return companyActions[action];
+    });
+  }
+};
+
+PTM.init();
+var ATTACHMENTS = {};

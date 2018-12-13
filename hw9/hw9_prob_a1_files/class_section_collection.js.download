@@ -1,0 +1,39 @@
+var ClassSectionCollectionController = Spine.Controller.sub({
+  elements: {
+    ".class_section_list": "el_sectionList"
+  },
+
+  init: function() {
+
+    this.render();
+  },
+
+  render: function() {
+    var view, view_el, i;
+    if (this.sections && this.sections.sections) {
+      var can_enroll = (this.sections.allow_enroll == 1) || (this.user_type == "prof");
+      for (i = 0; i < this.sections.sections.length; i++) {
+        // determine if user is in this section
+        var mine = false;
+        var sectionGroup = this.sections.sections[i].toLowerCase() + "_" + this.nid;
+        if (this.user_config && this.user_config.feed_groups) {
+          for (var j = 0; j < this.user_config.feed_groups.length; j++)
+            if (this.user_config.feed_groups[j] == sectionGroup)
+              mine = true;
+        }
+        view = new ClassSectionController({
+          item: {nid: this.nid,
+                 name: this.sections.sections[i],
+                 my_section: mine,
+                 not_my_section: !mine,
+                 can_enroll: can_enroll
+               }
+        });
+        view_el = view.render().el;
+        this.el_sectionList.append(view_el);
+      }
+    }
+
+    return this;
+  }
+});

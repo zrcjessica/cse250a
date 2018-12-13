@@ -1,0 +1,124 @@
+.pageOverlay {
+  background: black;
+  bottom: 0;
+  display: none;
+  left: 0;
+  opacity: 0.5;
+  position: absolute;
+  right: 0;
+  top: 0;
+  z-index: 1102;
+}
+.slidingPanel {
+  background: #ffffff url(images/section.png) left top repeat-x;
+  border: 3px solid white;
+  border-top: none;
+  box-shadow: 0 2px 5px black;
+  display: none;
+  left: 50%;
+  margin-left: -175px;
+  padding: 15px;
+  position: absolute;
+  top: -500px;
+  z-index: 10000;
+}
+.slidingPanel h2 {
+  font-size: 22px;
+  margin-bottom: 15px;
+}
+.slidingPanel input[type="text"],
+.slidingPanel input[type="password"] {
+  height: 30px;
+  line-height: 1;
+  width: 300px;
+}
+.slidingPanel input[type="text"],
+.slidingPanel input[type="password"],
+.slidingPanel textarea {
+  background: #FCFCFC;
+  box-shadow: inset 0 1px 5px #E0E5EA;
+  border: 1px solid #ADB3B5;
+  border-radius: 3px;
+  display: block;
+  font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  font-size: 15px;
+  margin-bottom: 10px;
+  padding: 5px;
+}
+.slidingPanel .formField::after {
+  content: ".";
+  display: block;
+  clear: both;
+  visibility: hidden;
+  line-height: 0;
+  height: 0;
+}
+.slidingPanel label:first-child {
+  margin-top: 0;
+}
+.slidingPanel label {
+  display: block;
+  margin-bottom: 3px;
+}
+.slidingPanel .buttonBar {
+  margin: 15px 0 0;
+}
+.slidingPanel .buttonBar .primary.button {
+  float: right;
+}
+.slidingPanel .button.primary {
+  background: url(images/button-primary.png) left -198px no-repeat, url(images/button-primary.png) right -258px no-repeat;
+  color: white;
+  text-shadow: 0 -1px 0 #bc670c;
+}
+.slidingPanel .buttonBar .button {
+  float: left;
+  margin-right: 3px;
+}
+.slidingPanel .button {
+  background: url(images/button.png) left -198px no-repeat, url(images/button.png) right -258px no-repeat;
+  color: #595E61;
+  cursor: pointer;
+  display: inline-block;
+  font-weight: bold;
+  height: 30px;
+  line-height: 30px;
+  padding: 0 5px;
+  text-shadow: 0 1px 0 #F8F8F8;
+}
+.slidingPanel a {
+  color: #3180BF;
+  text-decoration: none;
+}
+.slidingPanel .button.primary:active span {
+  background: url(images/button-primary.png) left -408px repeat-x;
+}
+.slidingPanel .button.primary:hover span {
+  background: url(images/button-primary.png) left -318px repeat-x;
+}
+.slidingPanel .button.primary span {
+  background: url(images/button-primary.png) left -228px repeat-x;
+}
+.slidingPanel .button:active span {
+  background: url(images/button.png) left -408px repeat-x;
+}
+.slidingPanel .button:hover span {
+  background: url(images/button.png) left -318px repeat-x;
+}
+.slidingPanel .button.primary span {
+  background: url(images/button-primary.png) left -228px repeat-x;
+}
+.slidingPanel .button:active span {
+  background: url(images/button.png) left -408px repeat-x;
+}
+.slidingPanel .button:hover span {
+  background: url(images/button.png) left -318px repeat-x;
+}
+.slidingPanel .button span {
+  background: url(images/button.png) left -228px repeat-x;
+  display: block;
+  height: 30px;
+  padding: 0 15px;
+  font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  font-size: 15px;
+}

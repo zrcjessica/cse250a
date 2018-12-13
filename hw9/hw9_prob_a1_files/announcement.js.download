@@ -1,0 +1,2 @@
+var Announcement = Spine.Model.sub();
+Announcement.configure("Announcement", "id", "title", "text", "nr", "client_time", "created", "network", "url");

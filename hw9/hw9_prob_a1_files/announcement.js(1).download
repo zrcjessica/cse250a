@@ -1,0 +1,174 @@
+var AnnouncementController = Spine.Controller.sub({
+  events: {
+    "click .btn_add": "create",
+    "click .view_more": "view_more",
+    "click .view_less": "view_less",
+    "click .show_announcements.all": "show_all",
+    "click .show_announcements.recent": "show_recent"
+  },
+  elements: {
+    ".announcements": "announcements",
+    ".tutorial": "tutorial",
+    ".show_announcements.all":"showall",
+    ".show_announcements.recent":"showrecent",
+    ".show_announcements":"showbutton",
+    ".view_more":"view_more_button",
+    ".view_less":"view_less_button",
+    ".dot":"dot",
+    "#public-announcements-alert" : "public_announcements_alert",
+  },
+  init: function() {
+    if (this.user_type != "public" || this.announcement_visibility) {
+      this.get_data();
+    } else {
+      this.public_announcements_alert.removeClass("hide");
+    }
+  },
+  render: function() {
+    this.announcements.html('');
+    var announcement, announcements, _i, _len;
+    announcements = Announcement.all();
+    if (announcements.length === 0) {
+      this.tutorial.removeClass("hide");
+    } else {
+      announcements.sort(function(a1, a2) {
+        return new Date(a2.created) - new Date(a1.created);
+      });
+      if(announcements.length <= 8){
+        this.showbutton.addClass("hidden");
+        _len = announcements.length;
+      }else{
+        this.showbutton.removeClass("hidden");
+        _len = 8;
+      } 
+
+      for (_i = 0; _i < _len; _i++) {
+        announcement = announcements[_i];
+        this.announcements.append(ich.tpl_announcement(announcement));
+      }
+      var theAnnoucementTexts = $('.announcement_text');
+      for (_i = 0; _i < theAnnoucementTexts.length; _i++) {
+        var h = $(theAnnoucementTexts[_i]).height();
+        if(h < 90){
+          $(theAnnoucementTexts[_i]).closest(".announcement").addClass('short');
+        }else{
+          $(theAnnoucementTexts[_i]).closest(".announcement").addClass('long');
+        }
+      }
+    }
+  },
+  render_all: function() {
+    this.announcements.html('');
+    var announcement, announcements, _i, _len;
+    announcements = Announcement.all();
+    if (announcements.length === 0) {
+      this.tutorial.removeClass("hide");
+    } else {
+      announcements.sort(function(a1, a2) {
+        return new Date(a2.created) - new Date(a1.created);
+      });
+      if(announcements.length <= 3){
+        this.showbutton.addClass("hidden");
+        _len = announcements.length;
+      }else{
+        this.showbutton.removeClass("hidden");
+        _len = 3;
+      } 
+
+      for (_i = 0; _i < _len; _i++) {
+        announcement = announcements[_i];
+        this.announcements.append(ich.tpl_announcement(announcement));
+      }
+    }
+  },
+  render_all: function() {
+    this.announcements.html('');
+    var announcement, announcements, _i, _len;
+    announcements = Announcement.all();
+    if (announcements.length === 0) {
+      this.tutorial.removeClass("hide");
+    } else {
+      announcements.sort(function(a1, a2) {
+        return new Date(a2.created) - new Date(a1.created);
+      });
+      if(announcements.length <= 8){
+        this.showbutton.addClass("hidden");
+      }else{
+        this.showbutton.removeClass("hidden");
+      } 
+      for (_i = 0, _len = announcements.length; _i < _len; _i++) {
+        announcement = announcements[_i];
+        this.announcements.append(ich.tpl_announcement(announcement));
+      }
+      var theAnnoucementTexts = $('.announcement_text');
+      for (_i = 0; _i < theAnnoucementTexts.length; _i++) {
+        var h = $(theAnnoucementTexts[_i]).height();
+        if(h < 90){
+          $(theAnnoucementTexts[_i]).closest(".announcement").addClass('short');
+        }else{
+          $(theAnnoucementTexts[_i]).closest(".announcement").addClass('long');
+        }
+      }
+    }
+  },
+  create: function() {
+    window.open(
+      networkToUrl(this.network) + '?announce=1');
+  },
+  get_data: function() {
+    this.process_data(this.announcement_data);
+    this.render();
+    // var _this = this;
+    // PA.call_pj("content.get_announcements_by_network_id", {
+    //   nid: this.nid
+    // }, 1, function(response) {
+    //   _this.process_data(response);
+    //   _this.render();
+    // }, null, this);
+  },
+  get_all_data: function() {
+    var _this = this;
+    PA.call_pj("content.get_announcements_by_network_id", {
+      nid: this.nid
+    }, 1, function(response) {
+      _this.process_data(response);
+      _this.render_all();
+    }, null, this);
+  },
+  view_more: function() {
+    //Shaan
+    //find the current announcement. find 'p' element and remove class 'short'
+    //hide .view_more and show .view_less
+  },
+  view_less: function() {
+    //Shaan
+    //find the current announcement. find 'p' element and add class 'short'
+    //hide .view_less and show .view_more
+  },
+  show_all: function() {
+    this.get_all_data();
+    this.showall.addClass('hide');
+    this.showrecent.removeClass('hide');
+  },
+  show_recent: function() {
+    this.get_data();
+    this.showrecent.addClass('hide');
+    this.showall.removeClass('hide');
+  },
+  process_data: function(data) {
+    var datum, _i, _len;
+    for (_i = 0, _len = data.length; _i < _len; _i++) {
+      datum = data[_i];
+      Announcement.create({
+        id: datum.id,
+        title: datum.subject,
+        text: P.text_editor.convertHtml(datum.content),
+        nr: datum.nr,
+        client_time: datum.client_time,
+        created: datum.created,
+        network: this.network,
+        url: networkToUrl(this.network) + '?cid=' + datum.nr
+      });
+    }
+  }
+});

@@ -1,0 +1,79 @@
+var EventManager = function() {
+  this.init();
+}
+
+EventManager.prototype = {
+
+  addListener: function(event, callback) {
+    if (!this.listeners[event]) {
+      this.listeners[event] = [];
+    }
+    if (callback instanceof Function) {
+      this.listeners[event].push(callback);
+    }
+    return this;
+  },
+  addLastListener: function(event, callback) {
+    if (!this.lastListeners[event]) {
+      this.lastListeners[event] = [];
+    }
+    if (callback instanceof Function) {
+      this.lastListeners[event].push(callback);
+    }
+    return this;
+  },
+
+  removeListener: function(event, callback) {
+    if (this.listeners[event]) {
+      var keepers = [];
+      for (var i = 0; i < this.listeners[event].length; i++) {
+        if (this.listeners[event][i] !== callback) {
+          keepers.push(this.listeners[event][i]);
+        }
+        this.listeners[event] = keepers;
+      }
+    }
+  },
+
+  fire: function(event, params) {
+    if (this.listeners[event]) {
+      for (var i = 0; i < this.listeners[event].length; i++) {
+        this.listeners[event][i].call(window, params);
+      }
+    }
+    if (this.lastListeners[event]) {
+      for (var i = 0; i < this.lastListeners[event].length; i++) {
+        this.lastListeners[event][i].call(window, params);
+      }
+    }
+    return false;
+  },
+
+  callFirst: function(event, params) {
+    if (this.listeners[event])
+      return this.listeners[event][0].call(window, params);
+    return "";
+  },
+
+  callFirstTrue: function(event, params) {
+    if (this.listeners[event]) {
+      for (var i = 0; i < this.listeners[event].length; i++) {
+        var ret = this.listeners[event][i].call(window, params);
+        if (ret !== false) return ret;
+      }
+    }
+    return false;
+  },
+
+  init: function() {
+    this.listeners = {};
+    this.lastListeners = {};
+  }
+}
+
+var PEM = new EventManager();
+
+function defaultVerify(callback) {
+  callback.call(window);
+}
+PEM.addListener("verifyAnyCancel", defaultVerify);

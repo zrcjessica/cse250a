@@ -1,0 +1,27 @@
+function nl2br(str) {
+    var breakTag = '<br />';
+    return (str + '').replace(/([^>\r\n]?)(\r\n|\n\r|\r|\n)/g, '$1' + breakTag + '$2');
+}
+
+function get_date() {
+    var date = new Date();
+    var d = date.getDate();
+    var day = (d < 10) ? '0' + d : d;
+    var m = date.getMonth() + 1;
+    var month = (m < 10) ? '0' + m : m;
+    var yy = date.getYear();
+    var year = (yy < 1000) ? yy + 1900 : yy;
+
+    return month + "/" + day + "/" + year;
+}
+
+// function routeToTab(hash) {
+//     var tab = hash.match(/#.*\/(.*)/);
+//     if (tab === null || tab === "course_information") {
+//         tab = "home";
+//     } else {
+//         tab = tab[1];
+//     }
+//     tab = "#tab_" + tab;
+//     $(tab).tab('show');
+// }

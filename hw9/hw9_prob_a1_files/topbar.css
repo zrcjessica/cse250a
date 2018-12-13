@@ -1,0 +1,915 @@
+/*
+ * LESS Mixins Bundle
+ * =========================
+ * Piazza Technologies, Inc.
+ */
+.centerAlign {
+  text-align: center;
+}
+.leftAlign {
+  text-align: left;
+}
+.rightAlign {
+  text-align: left;
+}
+.leftFloat {
+  float: left !important;
+}
+.rightFloat {
+  float: right !important;
+}
+/*Modal windows*/
+#Invite_Inst_Modal_Window input,
+#Invite_Inst_Modal_Window textarea {
+  width: 360px;
+}
+#Invite_Inst_Modal_Window textarea {
+  height: 100px;
+  max-width: 360px;
+}
+#Invite_Inst_Modal_Window input {
+  height: 25px;
+}
+#Invite_Inst_Modal_Window .content_section {
+  margin-bottom: 10px;
+}
+#Invite_Inst_Modal_Window .content_section p {
+  font-size: 12px;
+  font-weight: bold;
+  color: black;
+  margin-bottom: 5px;
+}
+#Invite_Inst_Modal_Window .UIButton {
+  margin-left: 10px;
+}
+.logout_message {
+  display: none;
+  text-align: center;
+  background-color: #f8caca;
+  padding: 5px;
+  color: #900;
+  font-weight: 500;
+  border-bottom: 1px solid #900;
+}
+/*New top bar styles start*/
+#PageTopbar {
+  position: absolute;
+  height: 33px;
+  /*change for new top bar*/
+  line-height: 1.2;
+  background: #3D7AA6;
+  margin-bottom: 1px;
+  z-index: 1099;
+  color: white;
+  border-bottom: 1px solid #041d39;
+  min-width: 1024px;
+  z-index: 1200;
+  width: 100%;
+}
+#PageTopbar.no_instructors {
+  background: #73788f;
+}
+#PageTopbar.no_instructors .topbar-arrow {
+  color: #d4d7de;
+  text-shadow: 1px 1px 0 #666;
+}
+#PageTopbar.no_instructors .topbar_button {
+  border: 1px solid #acafbc;
+  border-bottom: none;
+}
+#PageTopbar.no_instructors .topbar_button.new_topBar_classes .current-class-name {
+  color: #d4d7de;
+  text-shadow: 1px 1px 0 #666;
+}
+#PageTopbar.no_instructors .topbar_button:hover,
+#PageTopbar.no_instructors .topbar_button:active {
+  background: #bcbfc9;
+}
+#PageTopbar.no_instructors .topbar_button.active {
+  background: #acafbc;
+}
+#PageTopbar.no_instructors .topbar_button .topbar_button_label {
+  color: #d4d7de;
+  text-shadow: 1px 1px 0 #666;
+}
+#PageTopbar.no_instructors .topbar_button#user_button .topBar_button_right {
+  border-left: 1px solid #acafbc;
+}
+#PageTopbar.no_instructors .topBar_right .topbar_icons_wrapper {
+  border-right: 1px solid #acafbc;
+}
+#PageTopbar.no_instructors #account-name-container #account-name {
+  color: #d4d7de;
+  text-shadow: 1px 1px 0 #666;
+}
+#PageTopbar .incomplete_message {
+  padding: 2px 5px;
+  background: #FBF8C9;
+  border: 1px solid #FAED1F;
+  color: #D3A52A;
+  font-size: 9px;
+  font-weight: bold;
+  font-family: "Lucida Grande", Arial, sans-serif;
+  float: right;
+  position: absolute;
+  bottom: -6px;
+  right: 42px;
+}
+#PageTopbar .white_border {
+  width: 20px;
+  height: 20px;
+  overflow: hidden;
+  position: relative;
+  top: 5px;
+  border: 1px solid lightBlue;
+}
+#PageTopbar .topbar-account-wrapper {
+  float: left;
+  height: 34px;
+  cursor: pointer;
+}
+#PageTopbar .topbar-account-wrapper .white_border {
+  border-color: white;
+  -moz-box-shadow: 0 0 1px #aad0e6;
+  /* FF3.5+ */
+  -khtml-box-shadow: 0 0 1px #aad0e6;
+  /* Konqueror */
+  -webkit-box-shadow: 0 0 1px #aad0e6;
+  /* Safari 3.0+, Chrome */
+  box-shadow: 0 0 1px #aad0e6;
+  /* Opera 10.5, IE9, Chrome 10+ */
+}
+#PageTopbar .topbar-account-wrapper .white_border img {
+  border-color: white;
+}
+#PageTopbar #topbar-account-container {
+  float: left;
+}
+#PageTopbar #topbar-account-container:hover #account-name,
+#PageTopbar #topbar-account-container:active #account-name {
+  color: white;
+  text-decoration: none;
+}
+#PageTopbar #topbar-account-container:hover #account-name a,
+#PageTopbar #topbar-account-container:active #account-name a {
+  color: white;
+}
+#PageTopbar #topbar-account-container:hover .white_border,
+#PageTopbar #topbar-account-container:active .white_border {
+  border-color: white;
+  -moz-box-shadow: 0 0 1px #aad0e6;
+  /* FF3.5+ */
+  -khtml-box-shadow: 0 0 1px #aad0e6;
+  /* Konqueror */
+  -webkit-box-shadow: 0 0 1px #aad0e6;
+  /* Safari 3.0+, Chrome */
+  box-shadow: 0 0 1px #aad0e6;
+  /* Opera 10.5, IE9, Chrome 10+ */
+}
+#PageTopbar #topbar-account-container:hover .white_border img,
+#PageTopbar #topbar-account-container:active .white_border img {
+  border-color: white;
+}
+#PageTopbar .logo_wrapper {
+  float: left;
+  height: 100%;
+  padding-left: 10px;
+  padding-right: 10px;
+  position: relative;
+}
+#PageTopbar #PageLogo {
+  background: url(/images/piazza/dashboard/piazza-logo-new2.png) center 2px no-repeat;
+  cursor: pointer;
+  height: 33px;
+  float: left;
+  width: 100px;
+}
+#PageTopbar.hideForWishlistClasses .topBar_middle {
+  display: none;
+}
+#PageTopbar a {
+  color: #D9E4EC;
+}
+#PageTopbar a:hover {
+  color: white;
+}
+#PageTopbar .global_notifications_img {
+  background: url(/images/piazza/dashboard/topbar/warning.png) left top no-repeat;
+  height: 18px;
+  width: 18px;
+  float: left;
+  margin-right: 4px;
+}
+#PageTopbar .global_notifications_img.dropdown {
+  float: right;
+}
+#PageTopbar .new_dropdown_actions_wrapper {
+  background: #F4F5F7;
+  border-top: 1px solid #AAA;
+  padding: 5px 0px;
+  -moz-border-radius: 0px 0px 3px 3px;
+  -khtml-border-radius: 0px 0px 3px 3px;
+  -webkit-border-radius: 0px 0px 3px 3px;
+  border-radius: 0px 0px 3px 3px;
+  -moz-background-clip: padding-box;
+  -webkit-background-clip: padding-box;
+  background-clip: padding-box;
+}
+#PageTopbar .new_dropdown_actions_wrapper .new_dropdown_actions {
+  color: #424242;
+  padding: 5px 10px;
+  display: block;
+  font-weight: bold;
+  font-size: 11px;
+  width: auto;
+}
+#PageTopbar .new_dropdown_actions_wrapper .new_dropdown_actions a {
+  cursor: pointer;
+  color: #424242;
+}
+#PageTopbar .instructor_activation_topbar_tutorial_img {
+  background: url(/images/dashboard/common/ia2a_guided_tour.png) left top no-repeat;
+  height: 75px;
+  width: 270px;
+}
+#PageTopbar .instructor_activation_topbar_tutorial_button {
+  color: black;
+  font-size: 10px;
+  cursor: pointer;
+  float: right;
+  margin-top: -20px;
+}
+#PageTopbar #inactive_network_toggle {
+  color: #3D7CC8;
+  margin: 5px 10px;
+  cursor: pointer;
+}
+#PageTopbar #inactive_network_toggle:hover {
+  text-decoration: underline;
+}
+#PageTopbar .topbar-arrow {
+  color: #D9E4EC;
+  text-shadow: 1px 1px 0px #2E5E83;
+  font-size: 16px;
+  line-height: 1.2;
+  cursor: pointer;
+}
+#PageTopbar .topbar-arrow:active {
+  color: white;
+}
+#PageTopbar .topbar-arrow.settings_active {
+  color: white;
+}
+#PageTopbar .topbar-arrow:hover {
+  color: white;
+}
+#PageTopbar #question_dropdown {
+  width: 180px;
+  top: 32px;
+  left: -100px;
+  max-height: 200px;
+}
+#PageTopbar .question_button_wrapper.notification_present #question_dropdown {
+  left: -125px;
+}
+#PageTopbar #coursePage_dropdown {
+  width: auto;
+  top: 32px;
+  left: -135px;
+  max-height: 185px;
+}
+#PageTopbar .coursePage_button_wrapper.notification_present #coursePage_dropdown {
+  left: -157px;
+  width: 176px;
+}
+#PageTopbar .global-notifications {
+  background: #9A1E20;
+  padding: 2px;
+  -moz-border-radius: 3px;
+  -webkit-border-radius: 3px;
+  border-radius: 3px;
+  -moz-background-clip: padding-box;
+  -webkit-background-clip: padding-box;
+  background-clip: padding-box;
+  float: right;
+  margin-right: 0px;
+  box-shadow: 1px 1px 0 white;
+  text-align: center;
+  font-weight: 500;
+  font-size: 10px;
+  height: 11px;
+  min-width: 11px;
+}
+#PageTopbar .green-notifications {
+  background: #62ba5a;
+  padding: 2px;
+  -moz-border-radius: 3px;
+  -webkit-border-radius: 3px;
+  border-radius: 3px;
+  -moz-background-clip: padding-box;
+  -webkit-background-clip: padding-box;
+  background-clip: padding-box;
+  float: right;
+  margin-right: 0px;
+  box-shadow: 1px 1px 0 white;
+  text-align: center;
+  font-weight: 500;
+  font-size: 10px;
+  position: relative;
+  top: -5px;
+  left: -15px;
+}
+#PageTopbar .topbar_button {
+  float: left;
+  font-size: 10px;
+  font-weight: 500;
+  margin-top: 7px;
+  margin-left: 6px;
+  border: 1px solid #73A1C1;
+  border-bottom: none;
+  -moz-border-radius: 5px 5px 0 0;
+  -khtml-border-radius: 5px 5px 0 0;
+  -webkit-border-radius: 5px 5px 0 0;
+  border-radius: 5px 5px 0 0;
+  -moz-background-clip: padding-box;
+  -webkit-background-clip: padding-box;
+  background-clip: padding-box;
+  background: none;
+  cursor: pointer;
+}
+#PageTopbar .topbar_button.signup {
+  background: #f9bf5a;
+  border: 1px solid #f4b647;
+  border-bottom: 0;
+}
+#PageTopbar .topbar_button.signup .topbar_button_label {
+  color: white;
+  text-shadow: 1px 1px 0px #c60;
+}
+#PageTopbar .topbar_button.signup:hover {
+  background: #f7ad2b;
+}
+#PageTopbar .topbar_button#user_button {
+  margin-top: 5px;
+  margin-left: 10px;
+  -moz-border-radius: 0 0 0 0;
+  -khtml-border-radius: 0 0 0 0;
+  -webkit-border-radius: 0 0 0 0;
+  border-radius: 0 0 0 0;
+  -moz-background-clip: padding-box;
+  -webkit-background-clip: padding-box;
+  background-clip: padding-box;
+  border: none;
+  padding: 5px 0;
+}
+#PageTopbar .topbar_button#user_button .topBar_button_right {
+  padding: 0 8px;
+  border-left: 1px solid #73A1C1;
+}
+#PageTopbar .topbar_button:hover {
+  background: #568DB4;
+}
+#PageTopbar .topbar_button:hover .topbar_button_label {
+  color: white;
+}
+#PageTopbar .topbar_button:active {
+  background: #73A1C1;
+}
+#PageTopbar .topbar_button:active .topbar_button_label {
+  color: white;
+}
+#PageTopbar .topbar_button.active {
+  background: #73A1C1;
+  cursor: default;
+}
+#PageTopbar .topbar_button.active .topbar_button_label {
+  color: white;
+}
+#PageTopbar .topbar_button.no_border {
+  border: none;
+}
+#PageTopbar .topbar_button.no_border:hover {
+  background: none;
+}
+#PageTopbar .topbar_button.no_border:active {
+  background: none;
+}
+#PageTopbar .topbar_button.no_border.active {
+  background: none;
+}
+#PageTopbar .topbar_button.no_border.active .current-class-name {
+  color: white;
+}
+#PageTopbar .topbar_button.no_border.active .topbar-arrow {
+  color: white;
+}
+#PageTopbar .topbar_button.new_topBar_classes {
+  width: 180px;
+  float: right;
+  margin-right: 4px;
+}
+#PageTopbar .topbar_button.new_topBar_classes:hover .current-class-name {
+  color: white;
+}
+#PageTopbar .topbar_button.new_topBar_classes:hover .topbar-arrow {
+  color: white;
+}
+#PageTopbar .topbar_button.new_topBar_classes .topBar_button_left {
+  width: auto;
+}
+#PageTopbar .topbar_button.new_topBar_classes .topBar_button_right {
+  height: 15px;
+}
+#PageTopbar .topbar_button.new_topBar_classes .current-class-name {
+  text-transform: uppercase;
+  width: auto;
+  overflow: hidden;
+  line-height: 1.5;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  text-shadow: 1px 1px 0px #2E5E83;
+  margin-left: 5px;
+  font-size: 11px;
+  font-weight: bold;
+  float: right;
+  margin-right: 0px;
+  max-width: 115px;
+  color: #D9E4EC;
+  cursor: pointer;
+  margin-top: 5px;
+  font-family: 'Lucida Grande', Lucida, Arial, sans-serif;
+}
+#PageTopbar .topbar_button.new_topBar_classes .current-class-name:hover {
+  color: white;
+}
+#PageTopbar .topbar_button .topBar_button_left {
+  float: left;
+  padding: 5px 10px;
+  width: auto;
+  height: 15px;
+}
+#PageTopbar .topbar_button .topBar_button_right {
+  float: right;
+  cursor: pointer;
+  padding: 0 5px;
+  height: 17px;
+}
+#PageTopbar .topbar_button .topbar_button_label {
+  float: left;
+  text-shadow: 1px 1px 0px #2E5E83;
+  line-height: 1.6;
+  font-size: 11px;
+  margin-top: -1px;
+  color: #D9E4EC;
+  font-weight: bold;
+  font-family: 'Lucida Grande', Lucida, Arial, sans-serif;
+}
+#PageTopbar .topbar_button .topbar_button_label:hover {
+  color: white;
+}
+#PageTopbar .topbar_button .topbar_icon {
+  float: left;
+  background: url(/images/piazza/dashboard/topbar/new-icons.png) left top no-repeat;
+  height: 20px;
+  width: 24px;
+}
+#PageTopbar .topbar_button .qa_icon {
+  background-position: 0px top;
+}
+#PageTopbar .topbar_button .course_page_icon {
+  background-position: -24px top;
+}
+#PageTopbar .topbar_button .instructor_icon {
+  background-position: -48px top;
+  margin-right: 5px;
+}
+#PageTopbar #current-class {
+  float: left;
+}
+#PageTopbar #global-notifications-wrapper {
+  margin: 0px;
+  float: right;
+}
+#PageTopbar .button_wrapper {
+  float: left;
+}
+#PageTopbar #new-current-class {
+  float: right;
+}
+#PageTopbar #myClassMenu {
+  width: 280px;
+  top: 34px;
+  left: 60px;
+  max-height: auto;
+  padding-bottom: 0px;
+}
+#PageTopbar #instructor_dropdown {
+  width: 170px;
+  top: 32px;
+  left: -118px;
+  max-height: 185px;
+}
+#PageTopbar .instructor_button_wrapper.notification_present #instructor_dropdown {
+  left: -138px;
+}
+#PageTopbar #student_dropdown {
+  width: 170px;
+  top: 32px;
+  left: -107px;
+  max-height: 185px;
+}
+#PageTopbar .student_button_wrapper.notification_present #student_dropdown {
+  left: -129px;
+}
+#PageTopbar #user_dropdown {
+  width: auto;
+  top: 34px;
+  right: 3px;
+  padding-bottom: 0px;
+}
+#PageTopbar #myClasses {
+  max-height: 265px;
+  overflow-y: auto;
+  width: 100%;
+  overflow-x: hidden;
+}
+#PageTopbar .new_dropdown_wrapper {
+  position: relative;
+}
+#PageTopbar .new_dropdown_wrapper .new_dropdownMenu {
+  top: 33px;
+  border-top: 0px;
+  background: white;
+  border: 1px solid #aaa;
+  -moz-box-shadow: 0 1px 10px #606870;
+  /* FF3.5+ */
+  -khtml-box-shadow: 0 1px 10px #606870;
+  /* Konqueror */
+  -webkit-box-shadow: 0 1px 10px #606870;
+  /* Safari 3.0+, Chrome */
+  box-shadow: 0 1px 10px #606870;
+  /* Opera 10.5, IE9, Chrome 10+ */
+  min-width: 160px;
+  position: absolute;
+  overflow-x: hidden;
+  overflow-y: hidden;
+  -moz-border-radius: 3px;
+  -webkit-border-radius: 3px;
+  border-radius: 3px;
+  -moz-background-clip: padding-box;
+  -webkit-background-clip: padding-box;
+  background-clip: padding-box;
+  top: 25px;
+  width: auto;
+  z-index: 3;
+  text-align: left;
+  padding: 5px 0px;
+  font-family: 'Lucida Grande', Lucida, Arial, sans-serif;
+}
+#PageTopbar .new_dropdown_wrapper .new_dropdownMenu #user_dropdownMenu {
+  margin-bottom: 5px;
+}
+#PageTopbar .new_dropdown_wrapper .new_dropdownMenu .enterPrompt {
+  float: left;
+  margin-right: 4px;
+}
+#PageTopbar .new_dropdown_wrapper .new_dropdownMenu .add-class-button {
+  text-align: center;
+  font-weight: bold;
+  width: 200px;
+  margin: 10px auto;
+  padding: 6px;
+  background: url(/images/dashboard/topbar/gradients/topbar-light-gradient.png) left center repeat-x;
+  color: white;
+  -moz-border-radius: 5px;
+  -webkit-border-radius: 5px;
+  border-radius: 5px;
+  -moz-background-clip: padding-box;
+  -webkit-background-clip: padding-box;
+  background-clip: padding-box;
+}
+#PageTopbar .new_dropdown_wrapper .new_dropdownMenu .add-class-button:hover {
+  background-position: left -1px;
+}
+#PageTopbar .new_dropdown_wrapper .new_dropdownMenu .add-class-button:active {
+  background-position: left bottom;
+}
+#PageTopbar .new_dropdown_wrapper .new_dropdownMenu .add-class-button a {
+  color: white;
+}
+#PageTopbar .new_dropdown_wrapper .new_dropdownMenu .add-class-button a:hover {
+  text-decoration: none;
+}
+#PageTopbar .new_dropdown_wrapper .new_dropdownMenu li {
+  color: black;
+  display: block;
+  padding: 4px 10px;
+  font-size: 11px;
+  font-weight: normal;
+  margin: -1px 0;
+  line-height: 1.4;
+  width: 90%;
+}
+#PageTopbar .new_dropdown_wrapper .new_dropdownMenu li:hover {
+  background: #629FCB;
+  color: white;
+  cursor: pointer;
+}
+#PageTopbar .new_dropdown_wrapper .new_dropdownMenu li:active {
+  background: #87B9D8;
+}
+#PageTopbar .new_dropdown_wrapper .new_dropdownMenu li a {
+  color: black;
+}
+#PageTopbar .new_dropdown_wrapper .new_dropdownMenu li a:hover {
+  text-decoration: none;
+  color: white;
+}
+#PageTopbar .new_dropdown_wrapper .new_dropdownMenu li.last_row {
+  margin-top: 5px;
+  padding-top: 5px;
+  border-top: 1px solid #ddd;
+}
+#PageTopbar .new_dropdown_wrapper .new_dropdownMenu li.progress_bar_row .status_wrapper .status_title {
+  display: block;
+  margin-bottom: 2px;
+}
+#PageTopbar .new_dropdown_wrapper .new_dropdownMenu li.progress_bar_row .status_wrapper .status {
+  border: 1px solid #ccc;
+  height: 12px;
+  width: 150px;
+  background: white;
+  margin-bottom: 3px;
+}
+#PageTopbar .new_dropdown_wrapper .new_dropdownMenu li.progress_bar_row .status_wrapper .status .status_percentage {
+  background: #A1D16B;
+  background: -khtml-gradient(linear, left top, left bottom, from(#85BF3F), to(#A1D16B));
+  background: -webkit-gradient(linear, left top, left bottom, from(#85BF3F), to(#A1D16B));
+  background: -webkit-linear-gradient(top, #85BF3F 0%, #A1D16B 100%);
+  background: -moz-linear-gradient(center top, #85BF3F, #A1D16B);
+  background: -ms-linear-gradient(top, #85BF3F 0%, #A1D16B 100%);
+  background: -o-linear-gradient(top, #85BF3F 0%, #A1D16B 100%);
+  background: linear-gradient(top, #85BF3F 0%, #A1D16B 100%);
+  width: 50%;
+  height: 100%;
+}
+#PageTopbar .new_dropdown_wrapper .new_dropdownMenu li.progress_bar_row .status_wrapper .status_count_wrapper {
+  float: right;
+  margin-right: 10px;
+}
+#PageTopbar .new_dropdown_wrapper .new_dropdownMenu li.progress_bar_row .status_wrapper .status_count_wrapper .dropdown_notifications {
+  float: left;
+  padding: 0px;
+  font-size: 8px;
+  margin-top: 3px;
+  margin-right: 5px;
+}
+#PageTopbar .new_dropdown_wrapper .new_dropdownMenu li.progress_bar_row .status_wrapper .status_count_wrapper span {
+  font-size: 10px;
+  line-height: 1.6;
+  margin-right: 7px;
+}
+#PageTopbar .new_dropdown_wrapper .new_dropdownMenu li.progress_bar_row .status_wrapper .status_count_wrapper a {
+  color: #3D7CC8;
+  font-size: 10px;
+}
+#PageTopbar .new_dropdown_wrapper .new_dropdownMenu li.progress_bar_row .status_title:hover {
+  text-decoration: underline;
+  cursor: pointer;
+}
+#PageTopbar .new_dropdown_wrapper .new_dropdownMenu li.progress_bar_row:hover {
+  background: none;
+  cursor: pointer;
+  color: black;
+}
+#PageTopbar .new_dropdown_wrapper .new_dropdownMenu .dropdown_notifications_img {
+  background: url(/images/piazza/dashboard/topbar/notification_small.png) left top no-repeat;
+  height: 12px;
+  width: 12px;
+  float: left;
+  margin-right: 3px;
+  margin-top: 2px;
+}
+#PageTopbar .new_dropdown_wrapper .new_dropdownMenu .dropdown_notifications {
+  background: #9A1E20;
+  padding: 2px;
+  -moz-border-radius: 2px;
+  -webkit-border-radius: 2px;
+  border-radius: 2px;
+  -moz-background-clip: padding-box;
+  -webkit-background-clip: padding-box;
+  background-clip: padding-box;
+  float: right;
+  margin-right: 5px;
+  min-width: 12px;
+  text-align: center;
+  font-weight: bold;
+  font-size: 10px;
+  line-height: 1.2;
+  color: white;
+}
+#PageTopbar .new_dropdown_wrapper .new_dropdownMenu li.classDropdownItem {
+  display: block;
+  color: #3D7CC8;
+  padding: 4px 10px 5px;
+  font-size: 11px;
+  font-weight: normal;
+  border-top: 1px solid transparent;
+  border-bottom: 1px solid transparent;
+  margin: 0px;
+  line-height: 1.2;
+}
+#PageTopbar .new_dropdown_wrapper .new_dropdownMenu li.classDropdownItem:hover {
+  background: #ddedf7;
+  cursor: pointer;
+  border-top: 1px solid #92b6cd;
+  border-bottom: 1px solid #92b6cd;
+  text-decoration: none;
+}
+#PageTopbar .new_dropdown_wrapper .new_dropdownMenu li.classDropdownItem.wishlistInviteSent {
+  color: #8B373B;
+}
+#PageTopbar .new_dropdown_wrapper .new_dropdownMenu li.classDropdownItem.wishlistNoInvite {
+  color: #8B373B;
+}
+#PageTopbar .new_dropdown_wrapper .new_dropdownMenu li.classDropdownItem .main {
+  width: 210px;
+  display: inline-block;
+}
+#PageTopbar .new_dropdown_wrapper .new_dropdownMenu li.classDropdownItem .invite_inst {
+  text-align: right;
+  font-style: italic;
+  color: #8B373B;
+  font-weight: bold;
+  font-size: 11px;
+}
+.no_inst_wrapper {
+  width: 100%;
+  background: #2e2f3b;
+  /* Old browsers */
+  background: -moz-linear-gradient(top, #2e2f3b 0%, #565768 100%);
+  /* FF3.6+ */
+  background: -webkit-gradient(linear, left top, left bottom, color-stop(0%, #2e2f3b), color-stop(100%, #565768));
+  /* Chrome,Safari4+ */
+  background: -webkit-linear-gradient(top, #2e2f3b 0%, #565768 100%);
+  /* Chrome10+,Safari5.1+ */
+  background: -o-linear-gradient(top, #2e2f3b 0%, #565768 100%);
+  /* Opera 11.10+ */
+  background: -ms-linear-gradient(top, #2e2f3b 0%, #565768 100%);
+  /* IE10+ */
+  background: linear-gradient(to bottom, #2e2f3b 0%, #565768 100%);
+  /* W3C */
+  filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#2e2f3b', endColorstr='#565768', GradientType=0);
+  /* IE6-9 */
+  color: white;
+  position: absolute;
+  top: 34px;
+  z-index: 1001;
+  padding: 5px 0px;
+  border-bottom: 1px solid black;
+  font-family: 'Lucida Grande', Lucida, Arial, sans-serif;
+  font-size: 11px;
+  text-shadow: 1px 1px 0 #333;
+}
+.no_inst_wrapper .no_inst_content {
+  width: 300px;
+  margin: 0px auto;
+}
+.no_inst_wrapper .no_inst_content .no_inst_message {
+  float: left;
+  margin-top: 6px;
+}
+.no_inst_wrapper .no_inst_action {
+  float: left;
+  padding: 5px 15px;
+  border: 1px solid #acafbc;
+  -moz-border-radius: 3px;
+  -webkit-border-radius: 3px;
+  border-radius: 3px;
+  margin-left: 10px;
+  background: #74788d;
+  cursor: pointer;
+}
+.no_inst_wrapper .no_inst_action:hover {
+  background: #bcbfc9;
+}
+/*New top bar styles end*/
+.topBar_left {
+  width: 349px;
+  height: 33px;
+  float: left;
+}
+.topBar_middle {
+  height: 33px;
+  float: left;
+  padding-left: 10px;
+}
+.topBar_right {
+  height: 33px;
+  float: right;
+}
+.topBar_right .topbar_icons_wrapper {
+  float: left;
+  margin-right: 10px;
+  border-right: 1px solid #73A1C1;
+  margin-top: 10px;
+}
+.topBar_right .topbar_icons_wrapper .global-notifications {
+  position: relative;
+  top: -6px;
+  left: -11px;
+}
+.topBar_right .topbar_icons_wrapper .topbar_icons {
+  height: 17px;
+  width: 15px;
+  float: left;
+  margin-right: 10px;
+  margin-left: 5px;
+  cursor: pointer;
+  background: url(/images/piazza/dashboard/topbar/topbar_icons.png?v=2) left top no-repeat;
+}
+.topBar_right .topbar_icons_wrapper .topbar_icons.stats {
+  background-position: 0px top;
+}
+.topBar_right .topbar_icons_wrapper .topbar_icons.stats:hover {
+  background-position: -16px top;
+}
+.topBar_right .topbar_icons_wrapper .topbar_icons.notifications {
+  background-position: -32px top;
+}
+.topBar_right .topbar_icons_wrapper .topbar_icons.notifications:hover {
+  background-position: -47px top;
+}
+.topBar_right .topbar_icons_wrapper .topbar_icons.class_report {
+  background-position: -63px top;
+}
+.topBar_right .topbar_icons_wrapper .topbar_icons.class_report:hover {
+  background-position: -79px top;
+}
+#account-name-container {
+  float: left;
+  white-space: nowrap;
+  margin-top: 11px;
+  text-align: right;
+  text-shadow: 1px 1px 0px #2E5E83;
+  font-size: 11px;
+  color: #D9E4EC;
+  font-weight: bold;
+}
+#account-name-container:hover {
+  color: white;
+}
+#account-name-container.hasLinkBelow {
+  margin-top: 6px;
+}
+#account-name-container #account-name {
+  font-weight: bold;
+  display: block;
+  margin-top: 2px;
+  text-shadow: 1px 1px 0px #2E5E83;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: #D9E4EC;
+  font-family: 'Lucida Grande', Lucida, Arial, sans-serif;
+}
+#account-name-container #account-name:hover {
+  color: white;
+}
+#account-name-container #JobsLink {
+  color: yellow !important;
+  font-family: 'Lucida Grande', Lucida, Arial, sans-serif;
+  font-size: 10px;
+  font-weight: bold;
+}
+#account-name-container.sections_incomplete {
+  margin-top: 5px;
+}
+#account-name-container.sections_incomplete #account-name {
+  min-width: 120px;
+  text-align: left;
+}
+#account-image-container {
+  float: left;
+  height: 100%;
+  margin-left: 5px;
+  margin-right: 4px;
+  margin-top: 2px;
+}
+#account-image-container .user_pic {
+  max-height: none;
+  max-width: none;
+  min-height: 0;
+  min-width: 0;
+  margin-right: 3px;
+}
+#account-image-container img {
+  margin-top: 0;
+  max-width: none;
+  max-height: none;
+  min-width: 20px;
+  min-height: 20px;
+  position: absolute;
+}
+div.dropdownWrapper {
+  position: relative;
+}

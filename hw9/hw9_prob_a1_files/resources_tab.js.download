@@ -1,0 +1,302 @@
+var ResourcesTab = Spine.Controller.sub({
+  BASE_URL: "/class_profile/get_resource/",
+
+  events: {
+    "click .btn_edit_sections"  : "render_resource_sections_table",
+    "click .btn_save_sections"  : "save_resource_sections",
+    "click .btn_add_section"    : "add_resource_section"
+  },
+  elements: {
+    "#resource_sections_content"            : "resource_sections_content",
+    "#edit_resource_sections"               : "edit_resource_sections",
+    "#save_resource_sections"               : "save_resource_sections",
+    ".options_table tbody"                  : "options_table",
+    ".resource_options_section"             : "resource_options_section",
+    "input.section_name"                    : "input_section_name",
+    ".edit_resource_sections_alert"         : "edit_resource_sections_alert",
+    ".finish_edit_resource_sections_alert"  : "finish_edit_resource_sections_alert"  
+  },
+  init: function() {
+    this.add_all();
+    this.resources = this.resource_data;
+    this.process_data();
+
+    //$.datepicker.setDefaults({ dateFormat: 'd M yy' });
+    Spine.bind("resource_reorder", this.proxy(this.reorder_resources));
+  },
+  
+  set_resource_collection_item: function(item, item_name) {
+    this.get_resource_collection_item(item_name); // ensure inited...
+    this.resource_collection_items[item_name] = item;
+  },
+  get_resource_collection_item: function(item_name) {
+    if (!this.resource_collection_items) {
+      this.resource_collection_items = {};
+    }
+    return this.resource_collection_items[item_name];
+  },
+  render_resource_sections_table: function() {
+    if ($.browser.mozilla) {
+      setTimeout(function(){
+        setTimeout(function(){$('.date').blur();}, 200);
+        $('.title').focus();
+      }, 500);
+    }
+    var section, view;
+    this.options_table.empty();
+    this.resource_options_section.removeClass("hide");
+    this.edit_resource_sections.addClass("hide");
+    this.save_resource_sections.removeClass("hide");
+    this.edit_resource_sections_alert.removeClass("hide");
+
+    this.resource_section_options = [];
+    for (var i = 0; i < this.resource_section_info.length; i++) {
+      section = this.resource_section_info[i];
+      // if (section.needs_id) section.visibility = false;
+
+      view = new ResourceCollectionOptions({
+         section: section,
+         nid: this.nid,
+         parent: this,
+      });
+
+      this.options_table.append(view.render().el);
+      this.resource_section_options.push(view);         
+    }
+
+    this.options_table.sortable({
+      handle: ".reorder_resource",
+      axis: "y",
+      snap: true,
+      forcePlaceholderSize: true,
+      placeholder: 'ui-state-highlight',
+      start: function (event, block) {
+        $('.ui-state-highlight').css({
+          'width':$(block.helper).outerWidth(),
+          'height':$(block.helper).outerHeight(),
+        });
+      },
+      helper: function (e, tr) {
+        var $originals = tr.children();
+        var $helper = tr.clone();
+        $helper.children().each(function(index) {
+          $(this).width($originals.eq(index).width());
+        });
+
+        return $helper;
+      },   
+    });
+  },
+  add_resource_section: function() {
+    var text = this.input_section_name.val();
+    if (text != '') {
+      var new_section = {
+        has_date: true,
+        date_title: "Date",
+        needs_id: true, /* 'needs_id' indicates that section hasn't been saved yet */
+        title: text
+      };
+
+      this.resource_section_info.push(new_section);
+      this.render_resource_sections_table();
+      this.input_section_name.val('');
+    }
+  },
+  reorder_resources: function(reload_resources) {
+    var resource_section_params = [];
+    var section, ordering, _this = this;
+    var resource_collection_item = null;
+    for (var i = 0; i < this.resource_section_info.length; i++) {
+      section = this.resource_section_info[i];
+      ordering = [];
+      $('#resource_section_' + section['name'].replace(/([:.+&])/g, "\\$1") + " tbody").children('.resource_row').each(function(index) {
+        ordering.push($(this).data('cid'));
+      });
+      this.resource_section_info[i]['ordering'] = ordering;
+      // NOTE: need to update the collection resource item ordering reference 
+      // so it will be in sync when click show more / fewer
+      resource_collection_item = this.get_resource_collection_item(section['name']);
+      if (resource_collection_item) {
+        resource_collection_item.ordering = ordering;
+      }
+    }
+
+    var resource_section;
+    for (section_id in this.resource_sections) {
+      if (!this.resource_sections.hasOwnProperty(section_id)) continue;
+      resource_section = this.resource_sections[section_id];
+      resource_section.unbind();
+    }
+
+    PA.call_pj("network.update_resource_sections", {
+      nid: this.nid,
+      info: this.resource_section_info,
+    }, 1, function(result) {
+      /* update resource section info, rebuild the resource page if parameter provided */
+      var _this = this;
+      _this.resource_section_info = result['resource_section_info'];
+      _this.resources = result['resources'];
+
+      if (reload_resources) {
+        _this.resource_sections_content.empty();
+        _this.add_all();
+        _this.process_data();
+        if (window.NEED_UPLOAD_INIT && window.NEED_UPLOAD_INIT.length > 0) {
+          for (var i = 0; i < window.NEED_UPLOAD_INIT.length; i++) {
+            var _this = window.NEED_UPLOAD_INIT[i];
+            _this.init_add_resources(_this);
+            _this.uploader.init();
+            _this.init_uploader_handlers(_this);
+          }
+          window.NEED_UPLOAD_INIT = false;
+        }
+      }
+    }, null, this);
+  },
+  save_resource_sections: function() {
+    var resource_section_params = [];
+    var valid = true, _this = this;
+    for (var i = 0; i < this.resource_section_options.length; i++) {
+       var resource_section = this.resource_section_options[i];
+       if (!resource_section.validate()) valid = false;
+    }
+    if (!valid) {
+      alert("Please enter a Date Title, or disable the Date field.");
+      return;
+    }
+
+    Spine.trigger("resource_settings_save");
+
+    var section_title;
+    this.options_table.children().each(function(index) {
+      section_title = $(this).data('cid');
+
+      /* sections might have been reordered */
+      for (var i = 0; i < _this.resource_section_options.length; i++) {
+        var resource_section = _this.resource_section_options[i];
+        if (resource_section.section['title'] === section_title) {
+          /* Not needed on the backend */
+          delete resource_section.section.headers;
+
+          if (!resource_section.section['delete']) {
+            resource_section_params.push(resource_section.section);
+          }
+
+          break;
+        }
+      }
+    }); 
+
+    this.resource_section_options = [];
+
+    var resource_section;
+    for (section_id in this.resource_sections) {
+      if (!this.resource_sections.hasOwnProperty(section_id)) continue;
+      resource_section = this.resource_sections[section_id];
+      resource_section.unbind();
+    }
+
+    this.options_table.empty();
+
+    PA.call_pj("network.update_resource_sections", {
+      nid: this.nid,
+      info: resource_section_params,
+    }, 1, function(result) {
+      /* update resource section info, rebuild the resource page */
+      var _this = this;
+      _this.resource_section_info = result['resource_section_info'];
+      _this.resources = result['resources'];
+
+      _this.resource_sections_content.empty();
+      _this.add_all();
+      _this.process_data();
+
+      _this.finish_edit_resource_sections_alert.removeClass("hide");
+      _this.finish_edit_resource_sections_alert.delay(2000).fadeOut('slow');
+    }, null, this);
+
+    this.edit_resource_sections_alert.addClass("hide");
+    this.edit_resource_sections.removeClass("hide");
+    this.save_resource_sections.addClass("hide");
+    this.resource_options_section.addClass("hide");
+  },
+  
+  // NOTE: updates the view of the class profile resources tab main area with 
+  // all resource sections for this class (adds a table for each one)
+  // resource_sections_content should be emptied before this is called.
+  add_all: function() {
+    this.resource_sections = {};
+    var resource_section, section_id, view, _ref;
+
+    for (var i = 0; i < this.resource_section_info.length; i++) {
+      resource_section = this.resource_section_info[i];
+      section_id = resource_section.name;
+
+      resource_section.headers = [
+        { "class": "title", text: resource_section.title }
+      ];
+
+      if (resource_section.has_date) {
+        resource_section.headers.push({
+          "class": "date", text: resource_section.date_title
+        });
+      }
+
+      this.resource_sections[section_id] = ResourceCollection.create({
+        id: section_id,
+        nid: this.nid,
+        title: resource_section.title,
+        headers: resource_section.headers,
+      });
+      this.resource_sections[section_id].init_headers();
+      view = new ResourceCollectionController({
+        item: this.resource_sections[section_id],
+        user_type: this.user_type,
+        visibility: resource_section.visibility,
+        ordering: resource_section.ordering,
+        current_page_length_resources: resource_section.page_size,
+        disabled_pagination: resource_section.disabled_pagination
+      });
+      this.resource_sections_content.append(view.render().el);
+      // store the collection item so the ordering reference can be updated 
+      // when reorder happens 
+      this.set_resource_collection_item(view, section_id);
+    }
+  },
+  process_data: function() {
+    var resource, resource_section, section_id, _i, _len, _ref, _ref1;
+    _ref = this.resources;
+    for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+      resource = _ref[_i];
+
+      /* Determine which section on the resources page this resource belongs to */
+      if ((resource.config != null) && resource.config.section && (this.resource_sections[resource.config.section] != null)) {
+        resource_section = this.resource_sections[resource.config.section];
+      } else {
+        resource_section = this.resource_sections.general;
+      }
+
+      if (resource_section) {
+        /* Determine if resource is link or uploaded file on S3 */
+        if ((resource.config != null) && resource.config.resource_type && resource.config.resource_type == "link") {
+          resource.resource_type = "link";
+          resource.url = resource.content;
+        } else {
+          resource.resource_type = "file";
+          resource.url = this.BASE_URL + this.nid + "/" + resource.id;
+        }
+
+        if (!resource_section.has_date) resource.config.date = "";
+
+        resource_section.add_resource(resource);
+      }
+    }
+    _ref1 = this.resource_sections;
+    for (section_id in _ref1) {
+      if (!_ref1.hasOwnProperty(section_id)) continue;
+      resource_section = _ref1[section_id];
+      resource_section.sort();
+      resource_section.trigger("processed");
+    }
+  }
+});

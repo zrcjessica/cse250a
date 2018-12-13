@@ -1,0 +1,80 @@
+var Description = Spine.Model.sub();
+Description.configure("Description", "text");
+
+var DescriptionController = Spine.Controller.sub({
+  events: {
+    "click .btn_edit": "edit",
+    "click .btn_save": "save",
+    //"click .btn_cancel": "cancel",
+    "click .desc_cancel": "cancel",
+    "blur textarea": "focus_save",
+    "keypress input[type=text]": "save_on_enter",
+    //"click .delete_edit": "cancel"
+  },
+  elements: {
+    ".btn_edit": "btn_edit",
+    ".btn_save": "btn_save",
+    ".btn_cancel": "btn_cancel",
+    ".description .view": "view",
+    ".description textarea": "textarea",
+    ".tutorial": "tutorial",
+    //"#cancelChanges" : "modal_cancel"
+    
+  },
+  init: function(){
+    this.process_data();
+    this.render();
+    this.item.bind("save", this.proxy(this.render));
+    this.item.bind("destroy", this.proxy(this.release));
+  },
+  render: function() {
+    this.view.html(ProcessText(this.item.text));
+    this.mode_view();
+    return this;
+  },
+  mode_view: function() {
+    this.el.removeClass("editing");
+    if (this.item.text === "") this.tutorial.removeClass("hide");
+  },
+  mode_edit: function() {
+    this.el.addClass("editing");
+    this.tutorial.addClass("hide");
+  },
+  focus_save: function() {
+    this.btn_save.focus();
+  },
+  edit: function() {
+    this.textarea.val(this.item.text);
+    this.mode_edit();
+    this.textarea.focus();
+  },
+  save_on_enter: function(e) {
+    if (e.keyCode === 13) this.save();
+  },
+  save: function() {
+    var new_text, old_text;
+    old_text = this.item.text;
+    new_text = this.textarea.val();
+    if (new_text === old_text) {
+      this.mode_view();
+      return;
+    }
+    this.item.updateAttributes({
+      text: new_text
+    });
+    this.mode_view();
+    PA.call_pj("network.update", {
+      id: this.nid,
+      course_description: this.item.text
+    }, 1, (function() {}), Util.ajax_error_callback, this);
+    //if (PA && PA.isUserNewInstructor()) { PA.log_action("course_homepage_update_description"); }
+  },
+  cancel: function() {
+    this.mode_view();
+  },
+  process_data: function() {
+    this.item = Description.create({
+      text: this.data
+    });
+  }
+});

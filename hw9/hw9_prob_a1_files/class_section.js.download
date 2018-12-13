@@ -1,0 +1,45 @@
+var ClassSectionController = Spine.Controller.sub({
+  events: {
+    "click .join"         : "join",
+    "click .remove"       : "remove"
+  },
+
+
+  init: function() {
+
+  },
+
+  render: function() {
+    this.replace(ich.tpl_class_section(this.item));
+
+    return this;
+  },
+
+  join: function() {
+    /* Make petty call here */
+    PA.call_pj("network.manage_users_to_sections", {
+      nid: this.item['nid'],
+      section: this.item['name'],
+      join: 1
+    }, 1, (function() {}), Util.ajax_error_callback, this);
+
+    /* remove from other sections? */
+
+    this.item['my_section'] = true;
+    this.item['not_my_section'] = false;
+    this.render();
+  },
+
+  remove: function() {
+    PA.call_pj("network.manage_users_to_sections", {
+      nid: this.item['nid'],
+      section: this.item['name'],
+      leave: 1
+    }, 1, (function() {}), Util.ajax_error_callback, this);
+    /* Make petty call here */
+
+    this.item['my_section'] = false;
+    this.item['not_my_section'] = true;
+    this.render();
+  }
+});

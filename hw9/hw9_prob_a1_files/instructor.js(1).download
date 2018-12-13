@@ -1,0 +1,37 @@
+var InstructorController = Spine.Controller.sub({
+  elements: {
+    "input.time": "input_time",
+    "input.location": "input_location",
+    "input.instructor_email": "input_email"
+  },
+  init: function(){
+    this.item.bind("update", this.proxy(this.render));
+    this.item.bind("destroy", this.proxy(this.release));
+    Spine.bind("instructor_save", this.proxy(this.save));
+    Spine.bind("instructor_edit", this.proxy(this.edit));
+  },
+  render: function() {
+    this.replace(ich.tpl_instructor(this.item));
+    return this;
+  },
+  remove: function() {
+    this.item.destroy();
+  },
+  save: function() {
+    this.item.updateAttributes({
+      "email": this.input_email.val(),
+      "office_hours": {
+        time: this.input_time.val(),
+        location: this.input_location.val(),
+        email: this.input_email.val()
+      }
+    });
+  },
+  edit: function() {
+    if (!this.item.office_hours.time) this.input_time.val('');
+    else this.input_time.val(this.item.office_hours.time);
+
+    if (!this.item.office_hours.location) this.input_location.val('');
+    else this.input_location.val(this.item.office_hours.location);
+  }
+});

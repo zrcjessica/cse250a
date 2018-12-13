@@ -1,0 +1,90 @@
+var GeneralInformationCollectionController = Spine.Controller.sub({
+  events: {
+    "click .btn_edit": "edit",
+    "click .btn_save": "save",
+    "click .gi_cancel": "cancel",
+    "focus .btn_remove_row": "focus_save",
+    "keypress input[type=text]": "save_on_enter",
+    "focus .add_row .input-text": "add_empty",
+    "focus .add_row .input-label": "add_empty"
+  },
+  elements: {
+    ".btn_edit": "btn_edit",
+    ".btn_save": "btn_save",
+    ".btn_cancel": "btn_cancel",
+    "tbody": "tbody",
+    ".items thead": "thead",
+    ".tutorial": "tutorial",
+    ".add_row": "add_row"
+  },
+  init: function(){
+    GeneralInformation.bind("create", this.proxy(this.add_one));
+    this.process_data();
+    this.mode_view();
+  },
+  add_one: function(item) {
+    var view;
+    view = new GeneralInformationController({
+      item: item
+    });
+    this.add_row.before(view.render().el);
+  },
+  mode_edit: function() {
+    this.tutorial.addClass("hide");
+    this.el.addClass("editing");
+  },
+  mode_view: function() {
+    if (GeneralInformation.count() === 0) this.tutorial.removeClass("hide");
+    this.el.removeClass("editing");
+  },
+  edit: function() {
+    this.mode_edit();
+    if (GeneralInformation.count() === 0) this.add_empty();
+  },
+  save_on_enter: function(e) {
+    if (e.keyCode === 13) this.save();
+  },
+  add_empty: function() {
+    GeneralInformation.create({
+      label: "",
+      text: ""
+    });
+  },
+  focus_save: function() {
+    this.btn_save.focus();
+  },
+  save: function() {
+    var json_data;
+    Spine.trigger("course_information_general_information_save");
+    GeneralInformation.each(function(info) {
+      if (info.text === "" && info.label === "") info.destroy();
+    });
+    this.mode_view();
+    json_data = [];
+    GeneralInformation.each(function(info) {
+      json_data.push(info.to_json());
+    });
+    PA.call_pj("network.update", {
+      id: this.nid,
+      general_information: json_data
+    }, 1, (function() {}), Util.ajax_error_callback, this);
+    //if (PA && PA.isUserNewInstructor()) { PA.log_action("course_homepage_update_gen_info"); }
+  },
+  cancel: function() {
+    GeneralInformation.each(function(info) {
+      if (info.text === "" && info.label === "") info.destroy();
+    });
+    this.mode_view();
+  },
+  process_data: function() {
+    var datum, _i, _len, _ref;
+    _ref = this.data;
+    for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+      datum = _ref[_i];
+      GeneralInformation.create({
+        label: datum.label,
+        text: datum.text
+      });
+    }
+  }
+});

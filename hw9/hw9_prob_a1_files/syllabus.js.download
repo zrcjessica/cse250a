@@ -1,0 +1,135 @@
+var SyllabusController = Spine.Controller.sub({
+  events: {
+    "click #syllabus_delete": "remove"
+  },
+  elements: {
+    ".btn_download"           : "btn_download",
+    "#syllabus_add"           : "syllabus_add",
+    "#syllabus_edit"          : "syllabus_edit",
+    "#syllabus_delete"        : "syllabus_delete",
+    "#syllabus_prof"          : "syllabus_prof",
+    "#syllabus_stud"          : "syllabus_stud",
+    ".ajax_loader"            : "ajax_loader",
+    ".icon-pencil"            : "icon_edit"
+  },
+  init: function() {
+    var is_prof = false;
+
+    if (this.user_type == "prof") is_prof = true;
+
+    if (this.network.syllabus === "") {
+      if (is_prof) {
+        this.syllabus_add.show();
+        this.init_syllabus('syllabus_add');
+      } else this.syllabus_add.hide();
+
+      this.syllabus_prof.hide();
+      this.syllabus_stud.hide();       
+    } else {
+      if (is_prof) {
+        this.syllabus_prof.show();
+        this.syllabus_stud.hide();
+        this.init_syllabus('syllabus_edit');
+      } else {
+        this.syllabus_stud.show();
+        this.syllabus_prof.hide();
+      }
+
+      this.syllabus_add.hide();
+    }  
+  },
+  mode_saving: function() {
+    this.syllabus_add.addClass("disabled");
+    this.icon_edit.hide();
+    this.ajax_loader.addClass('active');
+  },
+  mode_done_save: function() {
+    this.ajax_loader.removeClass('active');
+    this.syllabus_add.removeClass("disabled");
+    this.btn_download.removeClass("disabled");
+    this.btn_download.unbind("click");
+    this.icon_edit.show();
+  },
+  remove: function() {
+    var handler, popover,
+      _this = this;
+    this.is_performing_action = true;
+    $('.popover').remove();
+    this.syllabus_delete.popover({
+      trigger: "manual",
+      placement: "right",
+      html: true
+    });
+    this.syllabus_delete.popover('show');
+    handler = function(event) {
+      if ($(event.target).closest('.popover').length === 0) {
+        _this.delete_cancel(arguments.callee);
+      }
+    };
+    $(document).click(handler);
+    popover = $(".popover");
+    popover.find(".yes").click(this.proxy(this.delete_confirm));
+    popover.find(".no").click(function() {
+      _this.delete_cancel(handler);
+    });
+    return false;
+  },
+  delete_confirm: function() {
+    this.syllabus_delete.popover('hide');
+    var params = {nid: this.network.id};
+    $.post("/class_profile/delete_syllabus", params);
+
+    this.syllabus_add.show();
+    this.syllabus_prof.hide();
+    this.syllabus_stud.hide();
+    this.init_syllabus('syllabus_add');
+    this.is_performing_action = false;
+  },
+  delete_cancel: function(handler) {
+    this.syllabus_delete.popover('hide');
+    $(document).unbind('click', handler);
+    this.is_performing_action = false;
+  },
+  init_syllabus: function(linked_button) {
+    var uploader, _this = this;
+    setTimeout(function(){
+      uploader = new plupload.Uploader({
+        runtimes: 'html5, silverlight, html4',
+        browse_button: linked_button,
+        container: 'syllabus',
+        max_file_size: '50mb',
+        url: '/class_profile/overwrite_syllabus',
+        multipart_params: {
+          nid: _this.network.id
+        },
+        silverlight_xap_url: '/third_party/plupload/js/plupload.silverlight.xap'
+      });
+
+      uploader.init();
+      uploader.bind('FilesAdded', function(up, files) {
+        _this.mode_saving();
+        up.refresh();
+        up.start();
+      });
+      uploader.bind('FileUploaded', function(up, file, response) {
+        _this.mode_done_save();
+        response = $.parseJSON(response.response);
+        if (response.error) {
+          Alert.create({
+            title: "Error uploading file",
+            text: response.result
+          });
+        } else {
+          _this.syllabus_add.hide();
+          _this.syllabus_prof.show();
+          _this.syllabus_stud.hide();
+          _this.init_syllabus('syllabus_edit');
+          //if (PA && PA.isUserNewInstructor()) { PA.log_action("upload_syllabus"); }
+        }
+        // Destroy uploader, so multiple popups do not occur when reuploading 
+        // multiple times:
+        uploader.destroy();
+      });
+    }, 500);
+  }
+});

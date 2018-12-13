@@ -1,0 +1,77 @@
+
+// Sliding Panels
+
+$(document).ready(function() {
+  $(document).bind('keyup', function(e) {
+    var keyCode = e.which;
+    $panel = $('.slidingPanel:visible');
+    
+    switch (keyCode) {
+      case 27:
+        // Escape Key
+        closeSlidingPanel($panel);
+        break;
+    }
+  });
+  
+  // Open panels should close when the Escape key is pressed. 
+  $('.pageOverlay').click(function() {
+    $panel = $('.slidingPanel:visible');
+    closeSlidingPanel($panel);
+  });
+  
+  // The login button should open the login panel.
+  $('.login.button, a.loginButton').click(function() {
+    openSlidingPanel($('#LoginPanel'));
+    $('#email_field').focus();
+  });
+  
+  // show login screen by passing a parameter in the URL:
+    url = document.location.href;
+    hash = url.split('#');
+    if ( hash[1] == 'login') {
+         openSlidingPanel($('#LoginPanel'));
+        $('#email_field').focus();
+    }
+
+  $('.create_close').live('click', function() {
+    var $panel = $(this).closest('.slidingPanel');
+    closeSlidingPanel($panel);
+    return false;
+  });
+  
+  // The cancel button should close the associated panel.
+  $('.slidingPanel a[rel="cancel"]').click(function() {
+    var $panel = $(this).closest('.slidingPanel');
+    closeSlidingPanel($panel);
+    return false;
+  });
+  
+  // The submit button should submit data and then show error messages, or close the panel on success.
+  $('.slidingPanel .button[rel="submit"]').click(function() {
+    //var $panel = $(this).closest('.slidingPanel');
+    // Form validation + data submission goes here...
+    //closeSlidingPanel($panel);
+    $('#login-form').submit();
+    return false;
+  });
+});
+
+function openSlidingPanel($panel) {
+  $('.pageOverlay').height($(document).height());
+  $('.pageOverlay').width($(document).width());
+  $('.pageOverlay').fadeIn();
+  $panel.show();
+  $panel.animate({
+    'top': 0
+  });
+}
+function closeSlidingPanel($panel) {
+  $panel.animate({
+    'top': -500 + 'px'
+  }, function() {
+    $panel.hide();
+  });  
+  $('.pageOverlay').fadeOut();
+}
+

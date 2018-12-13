@@ -1,0 +1,112 @@
+/* Used when instructor is editing */
+
+var ResourceCollectionOptions = Spine.Controller.sub({
+  events: {
+    "click .btn_delete" : "remove",
+    "click input.has_date" : "toggle_date_title"
+  },
+  elements: {
+    "input.has_date"    : "has_date",
+    "input.date_title"  : "date_title",
+    "input.visibility"  : "visibility",
+    ".btn_delete"       : "btn_delete",
+  },
+  init: function() {
+    Spine.bind("resource_settings_save", this.proxy(this.save));
+  },
+  render: function() {
+    this.replace(ich.tpl_resource_section_options(this.section));
+    this.toggle_date_title();
+    return this;
+  },
+  toggle_date_title: function() {
+    this.date_title.css({'background-color' : '#FFFFFF'});
+    if (this.has_date.is(':checked')) {
+      this.date_title.prop('disabled', false);
+    } else {
+      this.date_title.prop('disabled', true);
+      this.date_title.val('');
+    }
+  },
+  validate: function() {
+    if (this.has_date.is(':checked') && this.date_title.val() == '') {
+      this.date_title.css({'background-color' : '#F2BBC0'});
+      return false;
+    } else return true;
+  },
+  remove: function() {  
+    var handler, popover, _this = this;
+    this.is_performing_action = true;
+    $('.popover').remove();
+    this.btn_delete.popover({
+      trigger: "manual",
+      placement: "left",
+      html: true
+    });
+    this.btn_delete.popover('show');
+    handler = function(event) {
+      if ($(event.target).closest('.popover').length === 0) {
+        _this.delete_cancel(arguments.callee);
+      }
+    };
+    $(document).click(handler);
+    popover = $(".popover");
+    popover.find(".yes").click(this.proxy(this.delete_confirm));
+    popover.find(".no").click(function() {
+      _this.delete_cancel(handler);
+    });
+
+    return false;
+  },
+  delete_confirm: function() {
+    this.section['delete'] = true;
+    var section;
+
+    if (this.section.needs_id) { /* This section was just created and not yet saved, only exists locally. */
+      this.is_performing_action = false;
+      this.btn_delete.popover('hide');
+      this.el.empty();
+    } else { /* Call delete api call */
+      var _this = this;
+      PA.call_pj("network.delete_resource_section", {
+        nid: this.nid,
+        section_id: this.section.name
+      }, 1, function(response) {
+        _this.btn_delete.popover('hide');
+        _this.is_performing_action = false;
+        _this.el.empty();
+      }, Util.ajax_error_callback, this);
+    }
+
+    /* Make sure parent table doesn't use section anymore if re-rendered */
+    for (var i = 0; i < this.parent.resource_section_info.length; i++) {
+      section = this.parent.resource_section_info[i];
+      if (section['title'] && section['title'] == this.section.title) {
+        this.parent.resource_section_info.splice(i, 1);
+        break;
+      }
+    }
+  },
+  delete_cancel: function(handler) {
+    this.btn_delete.popover('hide');
+    $(document).unbind('click', handler);
+    this.is_performing_action = false;
+  },
+  unbind: function() {
+    Spine.unbind("resource_settings_save");
+    this.release();
+  },
+  save: function() {
+    if (this.has_date.is(':checked')) {
+      this.section.has_date = true;
+    } else this.section.has_date = false;
+
+    if (this.section.has_date) {
+      this.section.date_title = this.date_title.val();  
+    } else this.section.date_title = "";
+
+    // if (this.visibility.is(':checked')) {
+    //   this.section.visibility = true;  
+    // } else this.section.visibility = false;
+  }
+});

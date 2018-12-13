@@ -1,0 +1,164 @@
+var ResourceController = Spine.Controller.sub({
+  events: {
+    "click .title"              : "go_to_resource",
+    "click .btn_delete"         : "remove",
+    "click .btn_edit"           : "edit",
+    "click .btn_save"           : "save",
+    "keypress input[type=text]" : "save_on_enter",
+    "click .edit_title"         : "edit",
+    "click .placeholder_date"   : "edit_date",
+    "click .btn_announce"       : "announce"
+  },
+  elements: {
+    "input.title"       : "input_title",
+    "input.date"        : "input_date",
+    ".btn_delete"       : "btn_delete",
+    ".ajax_loader"      : "ajax_loader",
+    ".announce_message" : "announce_message"
+  },
+  init: function() {
+    this.item.bind("save", this.proxy(this.render));
+    this.item.bind("destroy", this.proxy(this.release));
+    this.item.bind("upload_start", this.proxy(this.on_upload_start));
+    this.item.bind("upload_finish", this.proxy(this.on_upload_finish));
+    this.is_performing_action = false;
+  },
+  on_upload_start: function() {
+    this.is_performing_action = true;
+    this.ajax_loader.css('display', 'block');
+  },
+  on_upload_finish: function() {
+    this.is_performing_action = false;
+    this.ajax_loader.hide();
+    /* this.announce_message.show(); */
+  },
+  render: function() {
+    if (this.item.date) {
+      this.item.date = $.datepicker.formatDate('M d, yy', new Date(this.item.date))
+    }
+
+    this.replace(ich.tpl_resource(this.item));
+    this.input_date.datepicker();
+
+    this.el.attr('data-cid', this.item.id);
+    return this;
+  },
+  remove: function() {
+    var handler, popover, _this = this;
+    this.is_performing_action = true;
+    $('.popover').remove();
+    this.btn_delete.popover({
+      trigger: "manual",
+      placement: "left",
+      html: true
+    });
+    this.btn_delete.popover('show');
+    handler = function(event) {
+      if ($(event.target).closest('.popover').length === 0) {
+        _this.delete_cancel(arguments.callee);
+      }
+    };
+    $(document).click(handler);
+    popover = $(".popover");
+    popover.find(".yes").click(this.proxy(this.delete_confirm));
+    popover.find(".no").click(function() {
+      _this.delete_cancel(handler);
+    });
+    return false;
+  },
+  delete_confirm: function() {
+    var _this = this;
+    PA.call_pj("content.delete", {
+      cid: this.item.id
+    }, 1, function(response) {
+      _this.btn_delete.popover('hide');
+      _this.item.destroy();
+      _this.is_performing_action = false;
+
+      Spine.trigger("resource_reorder", true);
+
+    }, Util.ajax_error_callback, this);
+  },
+  delete_cancel: function(handler) {
+    this.btn_delete.popover('hide');
+    $(document).unbind('click', handler);
+    this.is_performing_action = false;
+  },
+  edit: function() {
+    if (this.el.find('.reorder_resource').is(':visible')) {
+      this.el.find('.reorder_resource').hide();
+      this.el.find('.reorder_resource_disabled').removeClass('hide');
+      this.can_reorder = true;    
+    } else this.can_reorder = false;
+
+    this.is_performing_action = true;
+    this.input_title.val(this.item.title);
+    this.input_date.val(this.item.date);
+    this.el.addClass("editing");
+    this.input_title.focus();
+  },
+  edit_date: function() {
+    if (this.el.find('.reorder_resource').is(':visible')) {
+      this.el.find('.reorder_resource').hide();
+      this.el.find('.reorder_resource_disabled').removeClass('hide');
+      this.can_reorder = true;    
+    } else this.can_reorder = false;
+
+    this.is_performing_action = true;
+    this.input_title.val(this.item.title);
+    this.input_date.val(this.item.date);
+    this.el.addClass("editing");
+    this.input_date.focus();
+  },
+  save_on_enter: function(e) {
+    if (e.keyCode === 13) this.save();
+  },
+  save: function() {
+    var _this = this;
+    this.item.updateAttributes({
+      title: this.input_title.val(),
+      date: this.input_date.val()
+    });
+    var params = { cid: this.item.id, subject: this.item.title, config: { date: this.item.date, section: this.item.section_id, resource_type: this.item.resource_type } };
+    if (this.item.resource_type == "link") { params["content"] = this.item.url; }
+    PA.call_pj("content.update", params, 1, function(response) {
+      _this.el.removeClass("editing");
+      _this.is_performing_action = false;
+
+      if (this.can_reorder) this.el.find('.reorder_resource').removeClass('hide');
+    }, Util.ajax_error_callback, this);
+  },
+  announce: function() {
+    /* should not have to do this, refactor ~dkislyuk */
+
+    /* Cycle through networks to find this resource's net */
+    var found = false;
+    for (var i = 0; i < PA.user.networks.length; i++) {
+      if (PA.user.networks[i] && PA.user.networks[i].id == this.item.nid) {
+        var found = true;
+        var net = PA.user.networks[i];
+        window.open(networkToUrl(net) + '?announce=1&cid=' + this.item.id);
+      }
+    }
+
+    if (!found) {
+      /* default fallback */
+      window.open(networkToUrl(""))
+    }
+  },
+  go_to_resource: function(click_event) {
+    if (this.item.resource_type == "link") {
+      dataLayer.push({'event': 'eventTracker', 'eventCat': 'Resource', 'eventAct': 'Link Click', 'eventLbl': '', 'eventVal': 0}); 
+    } else {
+      dataLayer.push({'event': 'eventTracker', 'eventCat': 'Resource', 'eventAct': 'File Click', 'eventLbl': '', 'eventVal': 0}); 
+    }
+    
+
+
+    if (!this.is_performing_action) {
+      window.open(this.item.url);
+    }
+
+    return false; /* don't scroll up */
+  }
+});

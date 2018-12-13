@@ -1,0 +1,17 @@
+var AlertController = Spine.Controller.sub({
+  elements: {
+    ".alert": "alert"
+  },
+  init: function() {
+    Alert.bind("create", this.proxy(this.render));
+  },
+  render: function(alert) {
+    this.html(ich.tpl_alert(alert));
+    this.alert.delay(3000).fadeOut();
+    return this;
+  }
+});
+
+var Alert = Spine.Model.sub();
+Alert.configure("Alert", "title", "text");
+

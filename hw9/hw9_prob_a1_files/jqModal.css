@@ -1,0 +1,88 @@
+/* jqModal base Styling courtesy of;
+	Brice Burgess <bhb@iceburg.net> */
+
+/* The Window's CSS z-index value is respected (takes priority). If none is supplied,
+	the Window's z-index value will be set to 3000 by default (via jqModal.js). */
+
+.jqmWindow { display: none; position: absolute; top: 20px; left: 50%; overflow-y: hidden; background-color: #f6f6f6; border-radius: 10px; -webkit-border-radius: 10px; -moz-border-radius: 10px; -moz-box-shadow: 0 0 10px #333; -webkit-box-shadow: 0 0 10px #333; }
+.jqmOverlay { background-color: #000; }
+
+/*
+ * Background iframe styling for IE6.
+ * Prevents ActiveX bleed-through (<select> form elements, etc.)
+ */
+* iframe.jqm { position: absolute; top: 0; left: 0; z-index: -1; width: expression(this.parentNode.offsetWidth+'px'); height: expression(this.parentNode.offsetHeight+'px'); }
+
+/*
+ * Fixed posistioning emulation for IE6.
+ * Star selector used to hide definition from browsers other than IE6.
+ * For valid CSS, use a conditional include instead.
+ */
+* html .jqmWindow { position: absolute; top: expression((document.documentElement.scrollTop || document.body.scrollTop) + Math.round(17 * (document.documentElement.offsetHeight || document.body.clientHeight) / 100) + 'px'); }
+
+.jqmWindow.small 	 { margin-left: -300px; width: 600px; top: 80px; height: auto;  }
+.jqmWindow.large 	 { margin-left: -430px; width: 860px; top: 80px; height: 500px; }
+.jqmWindow .titlebar { height: 50px; line-height: 50px; background: url(/images/plugins/jqModal/bg-navbar.png) top repeat-x; border-bottom: 1px solid #fff; font-weight: bold; color: #fff; text-align: center; font-size: 20px; text-shadow: 0px -1px 0px #036; font-family: Helvetica; border-top-left-radius: 10px; border-top-right-radius: 10px; margin-bottom: 0px; }
+.jqmWindow .section  { margin-bottom: 10px; }
+
+.jqmWindow		 .content { padding: 10px 20px 20px 20px; overflow-x: hidden; font-size: 13px; }
+.jqmWindow.large .content { height: 500px; overflow-y: scroll; }
+
+#dialog_toplinks_accountSettings .content { height: 373px; overflow-y: scroll; }
+#dialog_toplinks_uploadPhoto .content { height: 50px; }
+#dialog_upload_attach .content { height: 50px; }
+#dialog_toplinks_classSettings   .content { height: 373px; overflow-y: scroll; }
+
+.jqmWindow.large h3 { display: block; margin-bottom: 10px; border-bottom: 1px solid #ccc;}
+
+.jqmWindow #classProfile { width: 390px; float: left;  }
+.jqmWindow #classLink	 { width: 390px; float: right; }
+.jqmWindow #generalPrefs { width: 390px; float: left;  }
+.jqmWindow #emailPrefs   { width: 390px; float: right; }
+
+.jqmWindow 		 label { float: left; text-align: right; margin-right: 10px; margin-top: 3px; font-weight: bold; color: #333; }
+.jqmWindow.small label { width:  60px; }
+.jqmWindow.large label { width: 130px; font-weight: normal;}
+.jqmWindow.large span.sublabel { color: #999; font-size: 10px; line-height: 11px; }
+
+.jqmWindow 		 input[type="text"] { font-size: 12px; padding: 3px; border: 1px solid #aaa; }
+.jqmWindow.small input[type="text"] { width: 478px; }
+.jqmWindow.large input[type="text"] { width: 242px; }
+
+.jqmWindow 		 input[type="password"] { font-size: 12px; padding: 3px; border: 1px solid #aaa; }
+.jqmWindow.small input[type="password"] { width: 478px; }
+.jqmWindow.large input[type="password"] { width: 240px; }
+
+.jqmWindow 		 textarea { resize: none; font-size: 12px; padding: 3px; border: 1px solid #aaa; }
+.jqmWindow.small textarea { height: 150px; width: 478px; }
+.jqmWindow.large textarea { height: 40px;  width: 657px; }
+#studentRoster   textarea { resize: vertical; height: 150px;}
+
+ul.instructorRoster, ul.studentRoster { margin-left: 140px; }
+ul.instructorRoster label, ul.studentRoster label { float: none; margin-top: 0px; }
+
+.jqmWindow		 .radioOptions label { float: none; font-weight: normal; }
+.jqmWindow.small .radioOptions li 	 { display: inline-block; padding: 10px 0; }
+.jqmWindow.small .radioOptions input { margin-right:  4px; }
+.jqmWindow.small .blockItem 		 { margin-bottom: 5px; }
+
+.iformNotification { border-radius: 8px; background: #a9e49b; border: 2px solid #45ac2d; padding: 5px; }
+.iformNotification#question-error-whoops, .iformNotification#question-title-length { background: #FFC3C3; border: 2px solid #FF3A3A; }
+.iformNotification#question-title-length { margin-top: 5px; }
+.iformNotification#followup-error { background: #FFC3C3; border: 2px solid #FF3A3A; display: none;}
+
+.jqmWindow .buttonWrapper { padding: 10px 20px; text-align: right; border-top: 1px solid #999; color: #888; border-bottom-left-radius: 10px; border-bottom-right-radius: 10px; }
+
+#concurrency_conflict_dialog { height: 485px; }
+#yourResponse, #yourPost { width: 49%; float: left; }
+#conflictingResponse, #conflictingPost { width: 49%; float: right; }
+#yourResponse textarea, #conflictingResponse textarea, #yourPost textarea, #conflictingPost textarea { width: 97%; height: 300px; margin-bottom: 5px; }
+#yourPost input[type="text"], #conflictingPost input[type="text"] { width: 97%; font-size: 18px; }
+#conflictMyResponse { background: #CCC; }
+
+#myCourses ul li { padding: 5px; line-height: 25px; }
+#myCourses ul li:hover { background: #fdfdfd; }
+#myCourses ul li .button { line-height: 18px; text-align: center; width: 75px; }
+#myCourses ul li .digest { width: 100px; display: inline-block; font-size: 12px;}
+
+#preview_area  { max-height: 350px; overflow-y: auto; }

@@ -1,0 +1,13 @@
+var GeneralInformation = Spine.Model.sub();
+GeneralInformation.configure("GeneralInformation", "label", "text");
+GeneralInformation.include({
+  to_json: function() {
+    return {
+      label: this.label,
+      text: this.text
+    };
+  },
+  set_text_to_html: function() {
+    this.text_as_html = ProcessText(this.text);
+  }
+});

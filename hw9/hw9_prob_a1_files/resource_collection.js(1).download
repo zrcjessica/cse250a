@@ -1,0 +1,528 @@
+// NOTE: this controller controls the resource table for a single resource section 
+// eg. for Homework, Lecture Notes etc
+
+var ResourceCollectionController = Spine.Controller.sub({
+  BASE_URL: "/class_profile/get_resource/",
+  DEFAULT_NUMBER_RESOURCES: 50,
+  
+  /* Pagination variables */
+  DEFAULT_PAGE_LENGTH_RESOURCES: 50,
+  CURRENT_PAGE_RESOURCES: 0,
+  current_page_length_resources: null,
+  disabled_pagination: true,
+  
+  events: {
+    "click .btn_add_link"         : "open_add_link_modal",
+    "click .btn_confirm_add_link" : "add_link",
+    "click #show_more_resources"  : "view_more_resources",
+    "click #show_less_resources"  : "view_less_resources",
+    "click .resource_pagination_toggle.next_page"  : "next_page",
+    "click .resource_pagination_toggle.previous_page"  : "previous_page"
+  },
+  elements: {
+    ".title_wrapper"                : "title_wrapper",
+    "tbody"                         : "tbody",
+    ".tutorial"                     : "tutorial",
+    ".table"                        : "table",
+    ".container_add"                : "container_add",
+    ".btn_add_file"                 : "btn_add_file",
+    ".add_link_modal"               : "add_link_modal",
+    "input.link_title"              : "input_link_title",
+    "input.link_address"            : "input_link_address",
+    "#public-resources-alert"       : "public_resources_alert",
+    ".number_of_resources_wrapper"  : "number_of_resources_wrapper",
+    "#number_of_resources_shown"    : "number_of_resources_shown",
+    "#number_of_total_resources"    : "number_of_total_resources",
+    "#show_more_resources"          : "show_more_resources",
+    "#show_less_resources"          : "show_less_resources",
+    "#resource_table_footer"        : "resource_table_footer",
+    ".resource_pagination_toggle.next_page": "resource_next_page",
+    ".resource_pagination_toggle.previous_page": "resource_previous_page",
+    
+    ".resource_pagination"          : "resource_pagination_top",
+    ".resource_pagination_bottom"   : "resource_pagination_bottom",
+    
+    ".page_boundary.starting"       : "page_boundary_starting_ui",
+    ".page_boundary.ending"         : "page_boundary_ending_ui",
+    ".page_boundary.total"          : "page_boundary_total_ui"
+  },
+  init: function() {
+    if (this.visibility || (this.user_type != "public" && this.user_type != "logged_in"))  {
+      this.item.bind("processed", this.proxy(this.add_all));
+      this.expanded_view = false;
+    }
+  },
+  render: function() {
+    this.replace(ich.tpl_resource_section(this.item));
+
+    if (!this.visibility && (this.user_type == "public" || this.user_type == "logged_in")) {
+      this.table.hide();
+      this.public_resources_alert.removeClass("hide");
+    }
+
+    return this;
+  },
+  
+  get_page_length: function() {
+    if (this.current_page_length_resources == null) {
+      this.current_page_length_resources = this.DEFAULT_PAGE_LENGTH_RESOURCES;
+    }
+    return this.current_page_length_resources;
+  },
+
+  // returns how many resources are associated with this section (including hidden ones)
+  get_total_resources_count: function() {
+    return ((this.item || {}).resources || []).length;
+  },
+  
+  has_more_than_one_page: function() {
+    return this.get_total_resources_count() > this.get_page_length();
+  },
+  
+  has_pagination: function() {
+    return !this.disabled_pagination && this.has_more_than_one_page();
+  },
+  
+  // renders the next page of resources in this table
+  next_page: function() {
+    if (!this.has_next_page()) {
+      return;
+    }
+    this.CURRENT_PAGE_RESOURCES += 1;
+    if(document.body.scrollTop > this.title_wrapper.offset().top) {
+      document.body.scrollTop = this.title_wrapper.offset().top - 20;  
+    }
+    //cause firefox and ie suck
+    else if(document.documentElement.scrollTop > this.title_wrapper.offset().top) {
+      document.documentElement.scrollTop = this.title_wrapper.offset().top - 20;  
+    }
+    this.render_page();
+  },
+  
+  // renders the previous page in this table
+  previous_page: function() {
+    if (!this.has_previous_page()) {
+      return;
+    }
+    this.CURRENT_PAGE_RESOURCES -= 1;
+    if(document.body.scrollTop > this.title_wrapper.offset().top) {
+      document.body.scrollTop = this.title_wrapper.offset().top - 20;  
+    }
+    //cause firefox and ie suck
+    else if(document.documentElement.scrollTop > this.title_wrapper.offset().top) {
+      document.documentElement.scrollTop = this.title_wrapper.offset().top - 20;  
+    }
+    this.render_page();
+  },
+  
+  has_next_page: function() {
+    var total =  this.get_total_resources_count();
+    var num_consumed = this.get_current_page_index_bounds().end + 1;
+    return total - num_consumed > 0;
+  },
+  
+  has_previous_page: function() {
+    return this.CURRENT_PAGE_RESOURCES > 0;
+  },
+  
+  // returns start index and end index for current page that should be showing 
+  // will return the min of total contents and the largest possible position 
+  // possible in the current page
+  get_current_page_index_bounds: function() {
+    var page_index = this.CURRENT_PAGE_RESOURCES;
+    var page_length = this.get_page_length();
+    var start = (page_index) * page_length;
+    var end = Math.min(
+        (start + page_length - 1), // max possible for this page 
+        (this.get_total_resources_count() - 1) // max possible ever
+    );
+    return {
+      start: start,
+      end: end
+    }
+  },
+  
+  // ensure the pagination ui shows if needed, hidden if not 
+  // as well as any show more / show fewer ui elements 
+  update_pagination_ui: function() {
+    
+    if (this.has_pagination()) {
+      
+      this.resource_pagination_top.show();
+      this.resource_pagination_bottom.show();
+      
+      var bounds = this.get_current_page_index_bounds();
+      this.page_boundary_starting_ui.html(bounds.start + 1);
+      this.page_boundary_ending_ui.html(bounds.end + 1);
+      this.page_boundary_total_ui.html(this.get_total_resources_count());
+      
+      this.show_more_resources.show();
+      
+      if (!this.has_next_page()) {
+        this.resource_next_page.addClass("disabled");
+        this.resource_previous_page.removeClass("disabled");
+      }
+      else if(!this.has_previous_page()) {
+        this.resource_next_page.removeClass("disabled");
+        this.resource_previous_page.addClass("disabled");
+      }
+      else {
+        this.resource_next_page.removeClass("disabled");
+        this.resource_previous_page.removeClass("disabled");
+      }
+      
+    } else {
+      
+      this.resource_table_footer.hide();
+      this.resource_pagination_top.hide();
+      this.resource_pagination_bottom.hide();
+      
+      if (this.has_more_than_one_page()) {
+        this.resource_table_footer.show();
+        this.show_less_resources.show();
+      } else {
+        this.show_less_resources.hide();
+      }
+      
+    };
+    
+  },
+  
+  // wipes out all the resource item html from the table element
+  clear_page: function() {
+    this.tbody.empty();
+  },
+  
+  // re renders and shows all items in the current page
+  // if pagination is disabled, will display all items
+  render_page: function() {
+    this.clear_page();
+    this.add_all();
+  },
+  tutorial_show: function() {
+    this.table.hide();
+    this.tutorial.removeClass("hide");
+  },
+  tutorial_hide: function() {
+    this.table.show();
+    this.tutorial.addClass("hide");
+  },
+  open_add_link_modal: function() {
+    this.add_link_modal.modal('show');
+    this.add_link_modal.removeClass("hide");
+  },
+  validate_link: function(link) {
+    var reg = /^(http|https|ftp):\/\/[a-z0-9]+([\-\.]{1}[a-z0-9]+)*\.[a-z]{2,5}(:[0-9]{1,5})?(\/.*)?$/;
+    return link.match(reg);
+  },
+  add_link: function() {
+    var _this = this;
+
+    var title = this.input_link_title.val();
+    title = title.replace(/&/g,"&amp;");
+    var address = this.input_link_address.val();
+
+    if (title.length == 0) {
+      $(".error_text").html("Please input a subject");
+      $(".error_text").show();
+    } else if (!this.validate_link(address)) {
+      $(".error_text").html("Invalid link. Please provide a complete url beginning with http:// or ftp://");
+      $(".error_text").show();
+    } else {
+      var params = {type : "resource", nid : this.item.nid, subject : title, content : address, config : {section : this.item.id, date : "", resource_type : "link"}};
+      PA.call_pj("content.create", params, 1, function (theData) {
+        var resource = {
+          id: theData.id,
+          subject: title,
+          url: address,
+          config: {
+            date: "",
+            section: _this.item.id,
+            resource_type : "link"
+          },
+          resource_type: "link",
+          created: (new Date()).toISOString()
+        }
+        resource_instance = _this.item.add_resource(resource)
+        _this.add_one(resource_instance, false, true)
+
+        _this.input_link_title.val("");
+        _this.input_link_address.val("");
+        _this.add_link_modal.modal('hide');
+        _this.add_link_modal.addClass("hide");
+
+        $(".error_text").html("An error occurred");
+        $(".error_text").hide();
+
+        Spine.trigger("resource_reorder", true);
+      }, function (err) {
+        $(".error_text").html(err);
+        $(".error_text").show();
+      });
+      //if (PA && PA.isUserNewInstructor()) { PA.log_action("course_homepage_add_link"); }
+    }
+
+    return false;
+  },
+  
+  // only adds resources for current page start and length
+  add_all: function() {
+    var resource, _i, _j, _len, _ref, _this = this;
+    var page_bounds = this.get_current_page_index_bounds();
+    
+    var visible_start_idx = page_bounds.start;
+    var visible_end_idx = page_bounds.end;
+    if (!this.has_pagination()) {
+      visible_start_idx = 0;
+      visible_end_idx = this.get_total_resources_count() - 1;
+    }
+    var num_added = 0;
+
+    if (this.item.resources.length === 0) {
+      this.tutorial_show();
+    } else {
+      _ref = this.item.resources;
+      if (this.ordering && this.ordering.length > 0) { /* User has reordered resources, use that ordering */
+        var resource_id;
+        
+        /* Place all the resources that are stored in the ordering first */
+        for (_i = 0; _i < this.ordering.length; _i++) {
+          
+          // resource to place 
+          resource_id = this.ordering[_i];
+
+          // get resource item by id in list of all resources 
+          for (_j = 0, _len = _ref.length; _j < _len; _j++) {
+            resource = _ref[_j];
+            if (resource.id === resource_id) {
+              var visible = num_added >= visible_start_idx && num_added <= visible_end_idx;
+              this.add_one(resource, !visible);
+              num_added++;
+              break;
+            }
+          }
+          
+        }
+
+        /* If there are any additional resources which do not have an ordering, append them here. */
+        if (this.ordering.length < _ref.length) {
+          
+          for (_i = 0, _len = _ref.length; _i < _len; _i++) {  
+            resource = _ref[_i];
+            if (jQuery.inArray(resource.id, this.ordering) == -1) {
+              var visible = num_added >= visible_start_idx && num_added <= visible_end_idx;
+              this.add_one(resource, !visible);
+              num_added++;
+            }
+          }
+        }
+      } else { /* Just use whatever order backend returned */
+        for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+          
+          resource = _ref[_i];
+          var visible = num_added >= visible_start_idx && num_added <= visible_end_idx;
+          this.add_one(resource, !visible);
+          num_added++;
+          
+        }
+      }
+    }
+    
+    this.update_pagination_ui();
+
+    if (this.user_type == "prof") {
+      var _this = this;
+      if (!window.NEED_UPLOAD_INIT) window.NEED_UPLOAD_INIT = [];
+      window.NEED_UPLOAD_INIT.push(_this);
+      var _ref = this.item.resources;
+
+      if (_ref.length > 1) {
+        this.tbody.find('.reorder_resource').removeClass('hide');
+
+         /* enable drag-drop */
+        this.tbody.sortable({
+          handle: ".reorder_resource",
+          axis: "y",
+          snap: true,
+          placeholder: 'ui-state-highlight',
+          tolerance: 'pointer',
+          start: function (event, block) {
+            $('.ui-state-highlight').css({
+              'width':$(block.helper).outerWidth(),
+              'height':$(block.helper).outerHeight(),
+            });
+
+            _this.table.removeClass('table-striped');
+            _this.tbody.children('.ui-state-default').each(function(index) {
+              $(this).css({ opacity: 0.6 });
+            });
+            block.helper.css({ opacity: 1.0 });
+          },
+          stop: function (event, ui) {
+            _this.table.addClass('table-striped');
+            _this.tbody.children('.ui-state-default').each(function(index) {
+              $(this).css({ opacity: 1.0 });
+            });
+
+            Spine.trigger("resource_reorder", false);
+          },
+          forceHelperSize: true,
+          helper: function (e, tr) {
+            var $originals = tr.children();
+            var $helper = tr.clone();
+            $helper.children().each(function(index) {
+              /* Width adjustion to make rows align while dragging */
+              var offset = 0;
+              switch (index) {
+                case 0: offset = 1; break;
+                case 2: offset = 3; break;
+              }
+
+              $(this).width($originals.eq(index).width() - offset);
+              $(this).removeClass("req_inst");
+            });
+
+            return $helper;
+          },
+        }).disableSelection();
+      }
+    }
+
+    Spine.unbind("processed");
+    return this;
+  },
+  add_one: function(resource, hide_resource, prepend) {
+    var view, view_el;
+    view = new ResourceController({
+      item: resource
+    });
+    view_el = view.render().el;
+    if (hide_resource) {
+      view_el.addClass('hide');
+      view_el.attr('hide_on_collapse', true);
+    }
+
+    if (prepend) this.tbody.prepend(view_el)
+    else this.tbody.append(view_el);
+
+    this.tutorial_hide();
+    return view_el;
+  },
+  // shows all resources
+  view_more_resources: function() {
+    this.number_of_resources_shown.html(this.item.resources.length);
+    this.show_more_resources.hide();
+    this.show_less_resources.show();
+    this.disabled_pagination = true;
+    this.tbody.children('.resource_row').removeClass('hide');
+    this.expanded_view = true;
+    this.render_page();
+    return false;
+  },
+  // return to pagination view 
+  view_less_resources: function() {
+    this.number_of_resources_shown.html(this.DEFAULT_NUMBER_RESOURCES);
+    this.show_less_resources.hide();
+    this.show_more_resources.show();
+    this.disabled_pagination = false;
+    this.tbody.children('.resource_row[hide_on_collapse=true]').addClass('hide');
+    this.expanded_view = false;
+    if(document.body.scrollTop > this.title_wrapper.offset().top) {
+      document.body.scrollTop = this.title_wrapper.offset().top - 20;  
+    }
+    //cause firefox and ie suck
+    else if(document.documentElement.scrollTop > this.title_wrapper.offset().top) {
+      document.documentElement.scrollTop = this.title_wrapper.offset().top - 20;  
+    }
+    this.render_page();
+    return false;
+  },
+  open_add_link_modal: function() {
+    this.add_link_modal.modal('show');
+    this.add_link_modal.removeClass("hide");
+  },
+  init_add_resources: function(_this) {
+    _this.uploader = new plupload.Uploader({
+      runtimes: 'html5, silverlight, html4',
+      browse_button: 'add_file_' + this.item.id,
+      container: 'container_add_file_' + this.item.id,
+      max_file_size: '100mb',
+      url: '/class_profile/add_resource',
+      multipart_params: {
+        nid: this.item.nid,
+        section: this.item.id
+      },
+      silverlight_xap_url: '/third_party/plupload/js/plupload.silverlight.xap'
+    });
+  },
+  init_uploader_handlers: function(_this) {
+    var form;
+
+    form = _this.container_add.find("form");
+    form.width(_this.btn_add_file.outerWidth());
+    form.height(_this.btn_add_file.outerHeight());
+
+    _this.uploader.bind('FilesAdded', function(up, files) {
+      var file, resource, resource_instance, _i, _len;
+      up.refresh();
+      up.start();
+      for (_i = 0, _len = files.length; _i < _len; _i++) {
+        file = files[_i];
+        if (file.status === plupload.FAILED) continue;
+        resource = {
+          id: file.id,
+          subject: file.name, //.replace(/(.*)\.\w+$/, "$1"),
+          config: {
+            date: "",
+            section: _this.item.id
+          },
+          resource_type: "file",
+          created: (new Date()).toISOString()
+        };
+        resource_instance = _this.item.add_resource(resource);
+        _this.add_one(resource_instance, false, true);
+        resource_instance.trigger("upload_start");
+      }
+    });
+
+    _this.uploader.bind('Error', function(up, err) {
+      var res;
+      Alert.create({
+        title: "Error uploading file",
+        text: err.message
+      });
+      try {
+        res = Resource.find(err.file.id);
+        res.destroy();
+      } catch (_error) {}
+    });
+
+    _this.uploader.bind('FileUploaded', function(up, file, response) {
+      var res, resource;
+      _this.el.removeClass("saving");
+      response = $.parseJSON(response.response);
+      if (response.error) {
+        Alert.create({
+          title: "Error uploading file",
+          text: response.result
+        });
+      } else {
+        resource = response.result;
+      }
+      try {
+        res = Resource.find(file.id);
+        if (response.error) {
+          res.destroy();
+        } else {
+          res.changeID(resource.id);
+          var url = "" + _this.BASE_URL + _this.item.nid + "/" + resource.id;
+          res.updateAttribute("url", url);
+          res.trigger("upload_finish");
+
+          Spine.trigger("resource_reorder", true);
+          //if (PA && PA.isUserNewInstructor()) { PA.log_action("course_homepage_upload_resource"); }
+        }
+      } catch (_error) {}
+    });
+  }
+});

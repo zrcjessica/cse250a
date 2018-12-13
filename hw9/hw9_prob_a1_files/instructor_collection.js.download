@@ -1,0 +1,94 @@
+var InstructorCollectionController = Spine.Controller.sub({
+  events: {
+    "click .btn_edit": "edit",
+    "click .btn_save": "save"
+  },
+  elements: {
+    ".btn_edit": "btn_edit",
+    ".btn_save": "btn_save",
+    ".table": "table",
+    ".instructors": "el_instructors",
+    ".tutorial": "tutorial"
+  },
+  init: function(){
+    Instructor.bind("create", this.proxy(this.add_one));
+    Instructor.bind("refresh", this.proxy(this.add_all));
+
+    /* Clear out the rails generated staff info */
+
+    this.el_instructors.empty();
+       
+    if (this.instructors.length === 0) {
+      this.show_tutorial();
+    } else {
+      this.fetch_instructor_information();
+    }
+  },
+  add_one: function(instructor) {
+    var view;
+    view = new InstructorController({
+      item: instructor
+    });
+    this.el_instructors.append(view.render().el);
+  },
+  add_all: function() {
+    Instructor.each(this.add_one);
+  },
+  fetch_instructor_information: function() {
+    var instructor, uids, _i, _len, _ref;
+    uids = [];
+    _ref = this.instructors;
+    for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+       instructor = _ref[_i];
+       uids.push(instructor.id);
+    }
+
+    this.process_instructor_information(this.instructors);
+  },
+  process_instructor_information: function(users) {
+    var user, _i, _len;
+    for (_i = 0, _len = users.length; _i < _len; _i++) {
+      user = users[_i];
+      /* The backend will return an email if permissions are appropriate, otherwise just leave it blank */
+      if (!user.email) user.email = '';
+      
+      if (user.id && user.name) {
+        if (!user.us && user.email !== "admin_inactive") {
+          var params = {
+            id: user.id,
+            name: user.name,
+            email: user.email,
+            office_hours: this.office_hours[user.id] || { time: '', location: '' },
+            img: PA.getUserPic(user.id, true, true, true)
+          };
+          if (this.office_hours[user.id] && this.office_hours[user.id].email)
+            params.email = this.office_hours[user.id].email;
+          Instructor.create(params);
+        }
+      }
+    }
+  },
+  edit: function() {
+    this.el.addClass("editing");
+    Spine.trigger("instructor_edit");
+  },
+  save: function() {
+    var office_hours;
+    this.el.removeClass("editing");
+    Spine.trigger("instructor_save");
+    office_hours = {};
+    Instructor.each(function(instructor) {
+      office_hours[instructor.id] = instructor.office_hours;
+    });
+    PA.call_pj("network.update", {
+      id: this.nid,
+      office_hours: office_hours
+    }, 1, (function() {}), Util.ajax_error_callback, this);
+    //if (PA && PA.isUserNewInstructor()) { PA.log_action("update_office_hours"); }
+  },
+  show_tutorial: function() {
+    this.btn_edit.hide();
+    this.table.hide();
+    this.tutorial.removeClass("hide");
+  }
+});

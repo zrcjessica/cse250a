@@ -1,0 +1,608 @@
+/*
+ * Catch any uncaught errors and report them to the server.
+ *
+ * This code is designed to have as few dependencies as possible; it now relies 
+ * only on jQuery. It is placed at the top of this file in order to also catch
+ * errors that occur in PA initialization.
+ *
+ * Everything is wrapped in a closure in order to avoid polluting the global
+ * namespace and to insulate the code.
+ */
+var err_count = 0;
+window.onerror = (function() {
+  var MAX_COUNT = 2;
+  var API_URL = '/logic/api?method=generic.report_js_error&aid=' +
+    (new Date()).getTime().toString(36) + Math.round(Math.random() * 1679616).toString(36);
+
+  var reportError = function(params) {
+    err_count++;
+    if(err_count > MAX_COUNT) {
+      return;
+    }
+    if (params.message && typeof(params.message) == 'string' && params.message.indexOf("Error connecting to extension") >= 0) return; // we don't want these
+    params.location = window.location.toString();
+    if(PA && PA.user && PA.user.id) {
+      params.uid = PA.user.id;
+    }
+    $.ajax({
+      url: API_URL,
+      data: JSON.stringify({
+        'method': 'generic.report_js_error', 
+        'params': params
+      }),
+      type: 'POST',
+      dataType: 'json'
+    });
+  };
+
+  // catch uncaught JS exceptions (the actual window.onerror)
+  return function(message, url, line) {
+    reportError({
+      type: 'js_exception',
+      message: message,
+      url: url,
+      line: line
+    });
+  };
+})();
+var dataLayer = [];
+PA = {
+  apiCache: {},
+  eventsToLog: [],
+  staticContent: false,
+  cookie: false,
+  users: {},
+  user: {},
+  othersId: 0,
+  userQueue: [],         // all users I don't know, but need to get
+  userCallback: [],
+  logApiTimeData: [],
+  cacheUser: function(user) {
+    if (user.config && user.config.endorser)
+      user.endorser = user.config.endorser;
+    PA.users[user.id] = user;
+  },
+
+  getCached: function(method, params){
+    var cacheKey = method + JSON.stringify(params);
+    return PA.apiCache[cacheKey];
+  },
+  cache: function(method, params, result){
+    var cacheKey = method + JSON.stringify(params);
+    PA.apiCache[cacheKey] = result;
+  },
+  regularError: function(err) {
+    if (err.indexOf("Session needed") >= 0 || err.indexOf("Not logged in") >= 0) {
+      PEM.fire("user_logout");
+    } else {
+      PEM.fire("error", err);
+    }
+  },
+  badError: function() {
+    PEM.fire("timeout");
+    if (typeof(console) != 'undefined') console.log("Cannot communicate with main Piazza server. Check your internet connection, or try again later.");
+  },
+  checkSession: function(err, method) {
+    if (method === "user.check_session") return;
+
+    /* When we get session-related errors, check that this client hasn't been logged out in another window. */
+    if (err.indexOf("No permission") >= 0 || err.indexOf("Please authenticate") >= 0 || err.indexOf("Action not allowed for unknown users") >= 0) {
+      PA.call_pj("user.check_session", {}, 1, function(data) {
+        if (data.id !== PA.user.id) { /* Server and client do not match user IDs! */
+          //PD.triggerLogoutWarning();
+          PEM.fire("user_logout");
+        }
+      }, function(err) {
+        if (err.indexOf("Please authenticate") >= 0) { /* No user logged in, trigger warning. */
+          PEM.fire("user_logout");
+          //PD.triggerLogoutWarning();
+        }
+      });
+    }
+  },
+
+  call_pj: function(method, params, blockObject, callback, error, scope) {
+    var start = new Date().getTime();
+    //if (typeof(console) != 'undefined') console.log("PA.call_pj method:" + method + ", params:" + JSON.stringify(params));
+    var cached = PA.getCached(method, params);
+    if(callback && cached && !cached.error && cached.result){  //don't return cached errors
+       callback.call(scope, cached.result, cached.aid);
+       return;
+    }
+    if (PA.cookie)
+      params.cookie = PA.cookie;
+    var data;
+
+    if (PA.eventsToLog.length > 0) {
+      data = JSON.stringify({method:method, params:params, logdata:{logevents:PA.eventsToLog}});
+      PA.eventsToLog = [];
+    }
+    else
+      data = JSON.stringify({method:method, params:params});
+
+    data = data.replace(/\\u000a/gi, "\\n");
+    //data = data.replace(/\?/gi, "%3F"); // not sure why we needed this
+    if (blockObject) {
+      if (blockObject != 1 && blockObject.block) blockObject.block();
+    } else
+      $.blockUI();
+    if (PA.staticContent && method != "network.search" && method != "network.filter_feed") {
+      var path = "/static/" + PA.staticContent + "/" + method;
+      if (params.cid)
+        path += "/" + params.cid;
+      path += "?t=" + (new Date()).getTime();
+      $.ajax({
+        url: path,
+        type: 'GET',
+        success: function(data) {
+          if (blockObject) {
+            if (blockObject != 1 && blockObject.unblock) blockObject.unblock();
+          } else
+            $.unblockUI();
+          if (data.result && callback)
+            callback.call(scope, data.result, "static");
+
+          var end = new Date().getTime();
+          var elapsedTime = end - start;
+          PA.writeApiTimeData(method,elapsedTime,params);
+        },
+        error: function(req, status, error) {
+          if (blockObject && blockObject != 1)
+            if (blockObject.unblock) blockObject.unblock();
+          else
+            $.unblockUI();
+        }
+      });
+    } else {
+      $.ajax({
+        url: '/logic/api?method=' + method + '&aid=' + (new Date()).getTime().toString(36) + Math.round(Math.random() * 1679616).toString(36),
+        data: data,
+        contentType: "application/json; charset=utf-8",
+        success: function(data) {
+          if (blockObject) {
+            if (blockObject != 1 && blockObject.unblock) blockObject.unblock();
+          } else
+            $.unblockUI();
+          if ((data.result || data.result === 0) && callback)
+            callback.call(scope, data.result, data.aid);
+          if (data.error) {
+            if (error)
+              error.call(scope, data.error);
+            else
+              PA.regularError(data.error);
+
+            PA.checkSession(data.error, method);
+          }
+          var end = new Date().getTime();
+          var elapsedTime = end - start;
+          PA.writeApiTimeData(method,elapsedTime,params,data.aid);
+        },
+        error: function(req, status, error) {
+          // try again first
+          setTimeout(function(){
+            $.ajax({
+              url: '/logic/api?method=' + method + '&aid=' + (new Date()).getTime().toString(36) + Math.round(Math.random() * 1679616).toString(36),
+              data: data,
+              success: function(data) {
+                if (blockObject) {
+                  if (blockObject != 1 && blockObject.unblock) blockObject.unblock();
+                } else
+                  $.unblockUI();
+                if (data.result && callback)
+                  callback.call(scope, data.result, data.aid);
+                if (data.error) {
+                  if (error)
+                    error.call(scope, data.error);
+                  else
+                    PA.regularError(data.error);
+                }
+                var end = new Date().getTime();
+                var elapsedTime = end - start;
+                PA.writeApiTimeData(method,elapsedTime,params,data.aid);
+              },
+              error: function(req, status, error) {
+                if (blockObject)
+                  if (blockObject != 1 && blockObject.unblock) blockObject.unblock();
+                else
+                  $.unblockUI();
+                PA.badError(error);
+              }
+            });
+          }, 3000);
+        }
+      });
+    }
+  },
+
+  call: function(method, params, blockObject, callback, error, scope) {
+    //XXXXXXXXXXXX
+    var start = new Date().getTime();
+    if (PA.cookie)
+      params.cookie = PA.cookie;
+    var data = JSON.stringify({method:method, params:params});
+    data = data.replace(/\\u000a/gi, "\\n");
+    //if (typeof(PD) != 'undefined' && PD.loading)
+    //  blockObject = 1; // do not show any block objects while loading
+    //if (PA.user && PA.user.config && PA.user.config.no_spinner)
+    //  blockObject = 1;
+    if (blockObject) {
+      if (blockObject != 1 && blockObject.block) blockObject.block();
+    } else
+      $.blockUI();
+    if (PA.staticContent && method != "network.search") {
+      var path = "/static/" + PA.staticContent + "/" + method;
+      if (params.cid)
+        path += "/" + params.cid
+      path += "?t=" + (new Date()).getTime();
+      $.ajax({
+        url: path,
+        type: 'GET',
+        success: function(data) {
+          if (blockObject) {
+            if (blockObject != 1 && blockObject.unblock) blockObject.unblock();
+          } else
+            $.unblockUI();
+          if (data.result && callback)
+            callback.call(scope, data.result, "static");
+
+          var end = new Date().getTime();
+          var elapsedTime = end - start;
+          PA.writeApiTimeData(method,elapsedTime,params,data.aid);
+        },
+        error: function(req, status, error) {
+          if (blockObject && blockObject != 1)
+            if (blockObject != 1 && blockObject.unblock) blockObject.unblock();
+          else
+            $.unblockUI();
+        }
+      });
+    } else {
+      $.ajax({
+        data: data,
+        success: function(data) {
+          if (blockObject) {
+            if (blockObject != 1 && blockObject.unblock) blockObject.unblock();
+          } else
+            $.unblockUI();
+          if (data.result && callback)
+            callback.call(scope, data.result, data.aid);
+          if (data.error) {
+            if (error)
+              error.call(scope, data.error);
+            else
+              PA.regularError(data.error);
+          }
+          var end = new Date().getTime();
+          var elapsedTime = end - start;
+          PA.writeApiTimeData(method,elapsedTime,params,data.aid);
+        },
+        error: function(req, status, error) {
+          if (blockObject && blockObject != 1)
+            blockObject.unblock();
+          else
+            $.unblockUI();
+        }
+      });
+    }
+  },
+  writeApiTimeData: function(method,elapsedTime,params,aid) {
+    if (method == "log.write_time_data")
+      return;
+    if (typeof(DO_LOG_BOOMERANG_DATA) == 'undefined' || DO_LOG_BOOMERANG_DATA == 0)
+      return;
+    PA.logApiTimeData.push([method,elapsedTime,params,aid]);
+    if (PA.logApiTimeData.length >= 5) {
+      var params = { 
+        timeData: PA.logApiTimeData
+      };
+      PA.call_pj("log.write_time_data", params, 1);
+      PA.logApiTimeData = [];
+    }
+  },
+  writeBoomrData: function(boomrObj, params) {
+    if (typeof(DO_LOG_BOOMERANG_DATA) == 'undefined' || DO_LOG_BOOMERANG_DATA == 0)
+      return;
+    var loadJsRegex = /,t_load_js\|(\d+),/;
+    var loadJsTimeMatch = boomrObj["t_other"].match(loadJsRegex);
+    var loadJsTime = "";
+    if (loadJsTimeMatch && loadJsTimeMatch.length > 1) {
+      loadJsTime = loadJsTimeMatch[1];
+    }
+    var params = {
+      perceivedLoadTime: boomrObj["t_done"],
+      pageReady: boomrObj["t_page"],
+      url: boomrObj["u"],
+      aid: params["aid"],
+      method: params["method"],
+      http_verb: params["http_verb"],
+      loadJsTime: loadJsTime
+    };
+    PA.call_pj("log.write_boomerang_data", params, 1);
+  },
+  getOthersList: function(uids, replaceId) {
+    // if we have info about all users, return now. Otherwise, get info and then return.
+    PA.othersId += 1;
+    var title = "";
+    var missing = [];
+    for (var i = 0; i < uids.length; i++) {
+      if (PA.users[uids[i]]) {
+        title += (title.length > 0 ? "<br>" : "") + PA.users[uids[i]].name;
+      } else if (uids[i] == "undefined") {
+        title += (title.length > 0 ? "<br>" : "") + "Anonymous";
+      } else if (uids[i] == "Instructors") {
+        title += (title.length > 0 ? "<br>" : "") + "Instructors";
+      }else {
+        missing.push(uids[i]);
+      }
+    }
+    if (missing.length > 0 && !replaceId) {
+      // get missing users, and register callback
+      var myId = PA.othersId;
+      PA.loadUsers(missing, function() {
+        PA.getOthersList(uids, 'others_' + myId);
+      });
+      return "<a href='#' onclick='return false;' class='others' title='loading...' id='others_" + myId + "'>" + uids.length + " others</a>";
+    } else {
+      var str = "<a href='#' onclick='return false;' class='others' id='" + replaceId + "' title='" + title + "'>" + uids.length + " others</a>";
+      if (replaceId) {
+        $('#' + replaceId).replaceWith(str);
+        $('#' + replaceId).tooltip({placement: 'bottom', html: true});
+      }
+      return str;
+    }
+  },
+  getUserName: function(id, anon, my_private_post, incognito_text) {
+    if (id == "Instructors")
+      return '<span class="user_name">Instructors</span>';
+    var html = '';
+    html += '<span anon="' + anon + '" class="user_name user_name_' + id ;
+    if (anon == "me") {
+      if (id == PA.user.id) {
+        html += '">You' + PA.getUserBadge(PA.user) + '</span>';
+        return html;
+      }
+      anon = "no";
+    }
+    if (id && (!anon || anon != "full" || id != PA.user.id ) && id != "undefined") {
+      if (PA.users[id]) {
+        if (anon  == "stud"){
+          html += ' user_name_anon anon_box_color">' + PA.users[id].name + '</span><span class="smallText">&nbsp;(anon. to classmates)</span>' + PA.getUserBadge(PA.users[id]);
+        } else {
+          //if (P.modules.network.type != 'group' && !P.modules.network.prof_hash[id])
+          //  html += '"><a class="view-profile-link" href="#" onClick="PEM.fire(\'showUserProfile\', \'' + id + '\');return false;" target="_self">' + PA.users[id].name + '</a></span>';
+          //else
+          html += '">' + PA.users[id].name + PA.getUserBadge(PA.users[id]) + '</span>';
+        }
+      } else {
+        html += ' user_loading">Loading...</span>';
+        PA.loadUser(id);
+      }
+    } else if (my_private_post && anon == "stud") {
+      if (incognito_text) {
+        html += ' user_name_anon anon_box_color" notutorial="anonymous to classmates">you' + PA.getUserBadge(PA.user) + '</span>';
+      } else {
+        html += ' user_name_anon anon_box_color" notutorial="anonymous to classmates">' + PA.user.name + PA.getUserBadge(PA.user) + '</span>';
+      }
+    } else {
+      html += ' ">Anonymous </span>';
+    }
+    return html;
+  },
+  getUserPic: function(id, no_click, no_resize, no_border) {
+    var resize = (no_resize) ? '' : 'onload="onImageLoad(event);"';
+    var border = (no_border) ? 'no_border' : 'white_border';
+
+    var html = '<div class="user_pic user_pic_' + id ;
+    if (id && id != "0")
+      if (PA.users[id]) {
+        var imagePath = 'https://dvngeac8rg9mb.cloudfront.net/images/dashboard/common/default_user.png';
+        if (PA.users[id].email == 'admin') imagePath = 'https://dvngeac8rg9mb.cloudfront.net/images/dashboard/common/nerd_small.png';
+        if (PA.users[id].photo)
+          imagePath = 'https://d1b10bmlvqabco.cloudfront.net/photos/' + id + '/' + PA.users[id].photo;
+        else if (PA.users[id].facebook_id)
+          imagePath = 'https://graph.facebook.com/' + PA.users[id].facebook_id + '/picture?type=square';
+        html += '"><div class="' + border + '"><img title="' + PA.users[id].name.replace(/"/g, '&quot;') + '" src="' + imagePath + '" ' + resize + ' /></div>';
+      } else {
+        html += ' user_loading">&nbsp;';
+        PA.loadUser(id);
+      }
+    else {
+      html += '"><div class="' + border + '"><img title="Anonymous" src="https://dvngeac8rg9mb.cloudfront.net/images/dashboard/common/default_anonymous.png" ' + resize + ' /></div>';
+    }
+    html += "</div>";
+    return html;
+  },
+  getUserBadge: function(user) {
+//
+//        <span class="answer_badge piazza_badge"></span>
+//        <span class="answer_badge class_badge"></span>
+//
+    var str = "";
+    // verify that this user is not instructor in this class
+    if (PA.profs && PA.profs[user.id]) return str;
+    if (user.endorser && user.endorser.global)
+      str += '<span class="answer_badge piazza_badge"></span>';
+    if (user.endorser && user.endorser[P.modules.network.id])
+      str += '<span class="answer_badge class_badge"></span>';
+    return str;
+  },
+  setUserPic: function(usr) {
+    $('.user_name_' + usr.id).each(function(){
+      var userHtml = usr.name;
+      //if (P.modules.network.type != 'group'  && !P.modules.network.prof_hash[usr.id])
+      //  userHtml = '<a class="view-profile-link" href="#" onClick="PEM.fire(\'showUserProfile\', \'' + usr.id + '\');return false;" target="_self">' + usr.name + '</a>';
+      if ($(this).attr("anon") == "stud") {
+        $(this).html(userHtml + " <span class=\"smallText\">(anon. to classmates)</span>" + PA.getUserBadge(usr));
+      } else {
+        $(this).html(userHtml + PA.getUserBadge(usr));
+      }
+    });
+    var imagePath = 'https://dvngeac8rg9mb.cloudfront.net/images/dashboard/common/default_user.png';
+    if (usr.email == 'admin') imagePath = 'https://dvngeac8rg9mb.cloudfront.net/images/dashboard/common/nerd_small.png';
+    if (usr.photo)
+      imagePath = 'https://d1b10bmlvqabco.cloudfront.net/photos/' + usr.id + '/' + usr.photo;
+    else if (usr.facebook_id)
+      imagePath = 'https://graph.facebook.com/' + usr.facebook_id + '/picture?type=square';
+    $('.user_pic_' + usr.id).html('<div class="white_border"><img title="'+usr.name.replace(/"/g, '&quot;')+'" src="' + imagePath + '" onload="onImageLoad(event);"/></div>');
+    if (usr.id == PA.user.id)
+      PA.user.photo = usr.photo;
+    $('.class_badge').tooltip({
+      'placement': 'left',
+      'title': 'Instructor-endorsed answerer in this class'
+    });
+    $('.piazza_badge').tooltip({
+      'placement': 'left',
+      'title': 'Instructor-endorsed answerer on Piazza'
+    });
+  },
+  loadUsers: function(ids, callback) {
+    if (callback)
+      PA.userCallback.push(callback);
+    for (var i = 0; i < ids.length; i++)
+      PA.loadUser(ids[i]);
+  },
+  loadUser: function(id) {
+    if (!PA.userQueue.exist(id))
+      PA.userQueue.push(id);
+    if (!PA.userTimeout)
+      PA.userTimeout = setTimeout('PA.getQueuedUsers()', 100);
+  },
+  getQueuedUsers: function() {
+    var data = {ids:PA.userQueue, nid:P.modules.network.id};
+    if (typeof(ANONYMIZE) != "undefined" && ANONYMIZE) { data["anonymize"] = "true"; }
+    PA.call_pj("network.get_users", data, 1, function(data){
+      data.forEach(function(usr){
+        PA.users[usr.id] = usr;
+        PA.setUserPic(usr);
+      });
+      if (PA.userCallback.length > 0) {
+        for (var i = 0; i < PA.userCallback.length; i++)
+          PA.userCallback[i].call(window);
+      }
+      PA.userCallback = [];
+      $('div.tipsy').remove(); // remove old tipsy messages
+      //if (typeof(PD) != 'undefined') $('.user_name_anon').tipsy({gravity: 'n', html: true});
+    });
+    PA.userQueue = [];
+    PA.userTimeout = null;
+  },
+  isProfessor: function() {
+    var networks = PA.user.networks;
+    var adminMap = PA.user.can_admin || {};
+    var profCount = 0;
+    for (var nid in adminMap) {
+      if (adminMap.hasOwnProperty(nid) && adminMap[nid] > 5) {
+        profCount++;
+      }
+    }
+    // if a user is a student in more classes than they're a prof, then we consider them a student
+    return profCount >= networks.length/2;
+  },
+  hasPermission: function(name) {
+    if (!PA.user.network_permissions) return false;
+    return PA.user.network_permissions[name];
+  },
+  trackEvent: function() {
+    // nothing
+  },
+  markSeenUnseen: function(message, unmark) {
+    PA.call_pj("user." + (unmark ? "un" : "") + "mark_seen", {msg:message}, 1);
+    if (!unmark) {
+      if (!PA.user.config.seen_message) PA.user.config.seen_message = [];
+      PA.user.config.seen_message.push(message);
+    }
+  },
+  isSeenUser: function(msg) {
+    return PA.user && PA.user.config && PA.user.config.seen_message && PA.user.config.seen_message.exist(msg);
+  },
+  isSeenCompany: function(msg) {
+    if (typeof(MY_CONF) === 'undefined') return false;
+    return MY_CONF && MY_CONF.seen && MY_CONF.seen.exist(msg);
+  },
+  markSeenCompany: function(message, unmark) {
+    var params = {msg:message};
+    if (unmark) params.unmark = 1;
+    PA.call_pj("careers_company.mark_seen", params, 1);
+    if (typeof(MY_CONF) === 'undefined' || !MY_CONF) MY_CONF = {};
+    if (!MY_CONF.seen) MY_CONF.seen = [];
+    if (!unmark) {
+      MY_CONF.seen.push(message);
+    }
+  },
+  markSeenNetwork: function(network, msg) {
+    if(!network.config.seen_message) {
+      network.config.seen_message = [];
+    }
+    // no need to mark as seen if it's already seen
+    if(PA.isSeenNetwork(network, msg)) {
+      return;
+    }
+    network.config.seen_message.push(msg);
+    PA.call_pj("network.mark_seen", {
+      nid: network.id,
+      message: msg
+    }, 1);
+  },
+  isSeenNetwork: function(network, msg) {
+    return network.config && (network.config.seen_message instanceof Array) && network.config.seen_message.exist(msg);
+  },
+  load: function(path, blockObject, callback, error, scope) {
+    if (PA.user && PA.user.config && PA.user.config.no_spinner)
+      blockObject = 1;
+    if (blockObject) {
+      if (blockObject != 1 && blockObject.block) blockObject.block();
+    } else
+      $.blockUI();
+    if (path.indexOf('?') < 0)
+      path += "?t=" + (new Date()).getTime();
+    else
+      path += "&t=" + (new Date()).getTime();
+    $.ajax({
+      url: path,
+      type: 'GET',
+      dataType: 'html',
+      success: function(data) {
+        if (blockObject) {
+          if (blockObject != 1 && blockObject.unblock) blockObject.unblock();
+        } else
+          $.unblockUI();
+        if (data && callback)
+          callback.call(scope, data);
+      },
+      error: function(req, status, err) {
+        if (blockObject)
+          if (blockObject != 1 && blockObject.unblock) blockObject.unblock();
+        else
+          $.unblockUI();
+        if (error)
+          error.call(scope, err);
+      }
+    });
+  },
+  // get network with the given nid out of PA.user.networks
+  getNetwork: function(nid) {
+    if(PA.user === null) {
+      return undefined;
+    }
+    return PA.user.networks.findAll(function(network) {
+      return network.id === nid;
+    })[0];
+  }
+
+}
+
+PEM.addListener("user", PA.cacheUser);
+
+$.ajaxSetup({
+    url: '/main/api',
+    type: 'POST',
+    dataType: 'json',
+    timeout: 15 * 60 * 1000 // 15 minute timeout
+});
+
+$.blockUI.defaults.overlayCSS["z-index"] = "1000000";
+$.blockUI.defaults.css["z-index"] = "1000001";
+$.blockUI.defaults.css.border = 'none';
+$.blockUI.defaults.css.cursor = 'default';
+$.blockUI.defaults.overlayCSS.cursor = 'default';
+$.blockUI.defaults.message = '';

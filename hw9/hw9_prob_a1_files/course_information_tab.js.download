@@ -1,0 +1,28 @@
+var CourseInformationTab = Spine.Controller.sub({
+  elements: {
+    ".section_description": "description",
+    ".section_general_information": "general_information",
+    ".section_announcements": "announcements"
+  },
+  init: function() {
+    new DescriptionController({
+      nid: this.nid,
+      el: this.description,
+      data: this.network.course_description || ""
+    });
+    new GeneralInformationCollectionController({
+      nid: this.nid,
+      el: this.general_information,
+      data: this.network.general_information || []
+    });
+    new AnnouncementController({
+      nid: this.nid,
+      network: this.network,
+      el: this.announcements,
+      user_type: this.user_type,
+      announcement_visibility: this.announcement_visibility,
+      announcement_data: this.announcement_data
+    });
+  }
+});
+

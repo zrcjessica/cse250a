@@ -1,0 +1,8 @@
+var Util = {
+  ajax_error_callback: function(error) {
+    return Alert.create({
+      title: "Error",
+      text: error
+    });
+  }
+};

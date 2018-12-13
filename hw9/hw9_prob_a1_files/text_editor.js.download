@@ -1,0 +1,602 @@
+
+function myFileBrowser (field_name, url, type, win) {
+    //alert("Field_Name: " + field_name + ";nURL: " + url + ";nType: " + type + ";nWin: " + win); // debug/testing
+    P.modules.loadModule("upload_manager", {}, function() {
+      PEM.fire("showUploadManager", {submit: function(url){
+        $("#" + field_name).val(url);
+      }});
+    }, null);
+}
+var actualCaretPositionBookmark = null;
+function LatexImageAlign(evt) {
+  var img;
+  try {
+    img = evt.currentTarget;
+    img = (evt.currentTarget) ? evt.currentTarget : evt.srcElement;
+  } catch (err) {
+    return;
+  }
+  var h = img.naturalHeight;
+  if (h > 16)
+    $(img).css("vertical-align", "middle");
+}
+/*
+var MATHJAX_CONFIG = 'MathJax.Hub.Config({root: "/third_party/mathjax/unpacked",' +
+    'extensions: ["tex2jax.js"],messageStyle: "none",' +
+    'jax: ["input/TeX", "output/HTML-CSS"],' +
+    'tex2jax: {' +
+    '  inlineMath: [ ["$$","$$"] ],' +
+    '  displayMath: [ ],' +
+    '  processEscapes: true}, ' +
+    '"HTML-CSS": { availableFonts: ["TeX"] } });' +
+    'MathJax.Hub.Startup.onload();';
+  */
+P.text_editor = {
+  template: null,
+  converter: null,
+  callbacks: {},
+  active: {},
+  oldText: {},
+  tinymceInit: false,
+  user: null,
+  dollars: "$$$$",
+
+  setUser: function(user) {
+    P.text_editor.user = user;
+  },
+
+  createEditor: function(options) {
+    if (!options.height || options.height < 200) options.height = 200;
+    if (options.noAnonymity) 
+      options.anon = false;
+    else 
+      options.anon = P.text_editor.getAnonymityOptions();
+    P.text_editor.isRich = true;
+    if (P.text_editor.user && P.text_editor.user.config && P.text_editor.user.config.default_editor == "plain")
+      P.text_editor.isRich = false;
+    if (P.text_editor.isRich)
+      options.text = P.text_editor.convertLatex(options.text, options.type);
+    else
+      options.text = P.text_editor.removeTags(options.text);
+    var showTip = false;
+    if (!PA.isSeenUser("at_tip") && PA.user.config.logins > 30 && PA.user.id < "iwg" && P.text_editor.isRich && 
+        !P.top_bar.network.config.disable_mentions && (P.top_bar.user.isInst || P.top_bar.network.config.enable_mentions_students))
+      showTip = true;
+    options.where.html(P.text_editor.template({options:options, isRich:P.text_editor.isRich, showTip:showTip}));
+    $('#rich_' + options.postfix).val(options.text);
+    if (P.text_editor.active[options.postfix])
+      P.text_editor.cancelActive(options.postfix);
+    if (P.text_editor.isRich) {
+      tinymce.execCommand('mceAddEditor',true, 'rich_' + options.postfix);
+      
+      // we need to initialize mathjax in the editor frame
+      //var dom = tinymce.get('rich_' + options.postfix).dom;
+      //var doc = tinymce.get('rich_' + options.postfix).getDoc();
+      //var script1 = dom.create('script',{type:"text/x-mathjax-config"},MATHJAX_CONFIG);
+      //var script2 = dom.create('script',{type:"text/javascript",src:"/third_party/mathjax/unpacked/MathJax.js"});
+      //var head = doc.getElementsByTagName("head")[0];
+      //head.appendChild(script1);
+      //head.appendChild(script2);
+
+      //MathJax.Hub.Typeset(tinymce.get('rich_' + options.postfix).getBody());
+      //P.text_editor.oldText[options.postfix] = $('#rich_' + options.postfix).val();
+    } else {
+      P.text_editor.oldText[options.postfix] = $('#rich_' + options.postfix).val();
+      $("#rich_" + options.postfix).focus();
+    }
+    //var editor = new Markdown.Editor(P.text_editor.converter, options.postfix, {handler:P.text_editor.helpFunction});
+    P.text_editor.callbacks[options.postfix] = options;
+    //editor.run();
+    //$('#wmd-input' + options.postfix).focus();
+    P.text_editor.active[options.postfix] = options.postfix;
+    if(P.top_bar.user.isInst >= 5) $('.inst_only_tag_helper').show();
+    if(P.top_bar.user.isInst >= 5) $('.stud_only_tag_helper').hide();
+  },
+  closeHelpTip: function() {
+    $('.new_feature_notification_wrapper').hide();
+    PA.markSeenUnseen("at_tip");
+    return false;
+  },
+  helpFunction: function() {
+    window.open('/formatting.html', '_blank');
+  },
+  previewPost: function(postfix) {
+    if (P.text_editor.isRich) {
+      doPostPreview(tinymce.get('rich_' + postfix), {});
+    } else {
+      doPostPreview(null, {}, postfix);
+    }
+    return false;
+  },
+  getAnonymityOptions: function() {
+    var anon = false;
+    if (PA.hasPermission("can_post_anonymous_all") || PA.hasPermission("can_post_anonymous_members")) {
+      anon = [{title:PA.user.name, val:"no"}];
+      if (PA.hasPermission("can_post_anonymous_members") && P.modules.network && !P.modules.network.isGroup)
+        anon.push({title:"Anonymous to Classmates", val:"stud"});
+      if (PA.hasPermission("can_post_anonymous_all"))
+        anon.push({title:"Anonymous to everyone", val:"full"});
+    }
+    return anon;
+  },
+  save: function(postfix) {
+    if (P.text_editor.callbacks[postfix] && P.text_editor.callbacks[postfix].save) {
+      if (P.text_editor.callbacks[postfix].save(P.text_editor.getEditorText(postfix), P.text_editor.getEditorAnonymity(postfix)) === false) return;
+    }
+    P.text_editor.cancelActive(postfix);
+    return false;
+  },
+  cancel: function(postfix) {
+    var newContent = $('#rich_' + postfix).val();
+    if (P.text_editor.isRich)
+      newContent = tinymce.get('rich_' + postfix).getContent();
+    if (newContent != '' && newContent != P.text_editor.oldText[postfix]) {
+      if (postfix == 'old_new_post')
+        PEM.fire("verifyCancelNewPost", function(){P.text_editor.doCancel({postfix: postfix})});
+      else
+        PEM.fire("verifyCancel", function(){P.text_editor.doCancel({postfix: postfix})});
+    } else {
+      P.text_editor.doCancel({postfix: postfix});
+    }
+    return false;
+  },
+  doCancel: function(params) {
+    P.text_editor.cancelActive(params.postfix);
+    if (P.text_editor.callbacks[params.postfix] && P.text_editor.callbacks[params.postfix].cancel)
+      P.text_editor.callbacks[params.postfix].cancel(params.hideHomeScreen);
+    return false;
+  },
+  cancelActive: function(postfix) {
+    if (typeof(tinymce) != "undefined") {
+      tinymce.execCommand('mceRemoveEditor',true, 'rich_' + postfix);
+    }
+    //tinymce.get("rich_" + postfix).remove();
+    delete (P.text_editor.active[postfix]);
+  },
+  cancelAll: function() {
+    for (var postfix in P.text_editor.active) {
+      if (P.text_editor.callbacks[postfix] && P.text_editor.callbacks[postfix].cancel)
+        P.text_editor.callbacks[postfix].cancel();
+      P.text_editor.cancelActive(postfix);
+    }
+  },
+  hasActiveEditor: function(keepOpen) {
+    for (var postfix in P.text_editor.active) {
+      var newContent = P.text_editor.getEditorText(postfix, true);
+      if (postfix == 'old_new_post') return postfix;
+      if (!newContent || newContent == P.text_editor.oldText[postfix]) {
+        P.text_editor.cancelActive(postfix);
+      } else {
+        if (newContent != '' && newContent != P.text_editor.oldText[postfix]) return postfix;
+      }
+    }
+    return false;
+  },
+  makeHtml: function(option) {
+    var text = option.text;
+    var type = option.type;
+    if (type && type == "poll")
+      text = "<" + type + ">" + text;
+    return P.text_editor.convertHtml(text, option.isNew, option.isEditorPreview);
+  },
+  makeLaTeX: function(src, toHTML) {
+    var content_text = src;
+    content_text = content_text.replace(/<\/span>/g, "");
+    content_text = content_text.replace(/<span[^>]*>/g, "");
+    content_text = $("<span>" + content_text + "</span>").html();  // escape weird characters
+    content_text = content_text.replace(/&lt;/g, "<");
+    content_text = content_text.replace(/&gt;/g, ">");
+    content_text = content_text.replace(/&amp;/g, "&");
+    content_text = content_text.replace(/&quot;/g, '"');
+    content_text = content_text.replace(/&nbsp;/g, ' ');
+    content_text = content_text.replace(/<br>/g, "\n");
+    content_text = content_text.replace(/<p>/g, "");
+    content_text = content_text.replace(/<\/p>/g, "\n");
+    if (toHTML) {
+      content_text = content_text.replace(/\n$/, "<br/>&nbsp;");
+      content_text = content_text.replace(/\n/g, "<br/>");
+    }
+    return content_text;
+  },
+  convertHtml: function(html, isNew, isEditorPreview) {
+    if (!html) return "";
+    html = html.replace(/&quot;/g, '"');
+    html = html.replace(/&#34;/g, '"');
+    html = html.replace(/&#39;/g, "'");
+    html = html.replace(/&amp;amp;/g, '&amp;');
+    html = html.replace(/begin{tabular}/g, 'begin{array}');
+    html = html.replace(/end{tabular}/g, 'end{array}');
+    var pres = html.match(/<pre>[\s\S]*?<\/pre>/g);
+    if (pres) {
+      for (var i = 0; i < pres.length; i++) {
+        html = html.replace(pres[i], "<|_p_" + i + "_p_|>");
+      }
+    }
+    if (html.indexOf("<p ") != 0 && html.indexOf("<p>") != 0 && html.indexOf("<div") != 0 && !isNew) { // this is old edit
+      html = html.replace(/\r/g, "");
+      html = html.replace(/^(.{0,3})\n\n/g, "$1<br/><br/>");
+      html = html.replace(/^(.{0,3})\n/g, "$1<br/>");
+      html = html.replace(/((?!<\/p>|ble>|p_\|>|\/ol>|\/ul>|\/li>|<ul>|<ol>)....)\n\n/g, "$1<br/><br/>");
+      html = html.replace(/((?!<\/p>|ble>|p_\|>|\/ol>|\/ul>|\/li>|<ul>|<ol>)....)\n/g, "$1<br/>");
+      html = html.replace(/\n\n\n/g, "<br/><br/>");
+      html = html.replace(/\n\n/g, "<br/>");
+    } else {
+      html = html.replace(/<p><\/p>/g, "<p>&nbsp;</p>");
+    }
+    var tts = html.match(/<tt>[\s\S]*?<\/tt>/g);
+    if (tts) {
+      for (var i = 0; i < tts.length; i++) {
+        html = html.replace(tts[i], "<|_tt_" + i + "_tt_|>");
+      }
+    }
+    //if (html.indexOf("<p") != 0) { // this is old edit
+      //html = html.replace(/(^|[^"'>])(https?:\/\/(\([^\s<\[\]"\)]*\)|[^ \t\n<\[\]"()])+?(\([^\s<\[\]"\)]*\)|[\w\/?=)}#&]))(?=$|<br|<\/|\s|([\]\)]|&gt;)[\.,:;?!"'\-]*(\s|<br|<\/|$)|[\.,:;!"'\-]+(\s|<br|<\/|$))/g, '$1<a href="$2" target="_blank">$2</a>');
+      html = html.replace(/(<a href="[^"]*")>/g, '$1 target="_blank">');
+      html = html.replace(/target="_blank"/g, 'target="_blank" rel="noreferrer"');
+    //}
+    //var arr = html.split('$$');
+    //if (arr.length > 2) {
+      // potential latex
+    html = html.replace(/"http:\/\/www.youtube.com\/embed\//g, '"https:\/\/www.youtube.com\/embed\/');
+    html = html.replace(/<latex[^>]*>/g, "").replace("</latex>", "");
+    var pageUrl = "/class/";
+    if (P.modules && P.modules.network) pageUrl += P.modules.network.id;
+    html = html.replace(/^@(\d+)/g, '<a href="' + pageUrl + '?cid=$1" onclick="return PEM.fire(\'selectContent\', \'$1\')">@$1</a>');
+    html = html.replace(/>@(\d+)/g, '><a href="' + pageUrl + '?cid=$1" onclick="return PEM.fire(\'selectContent\', \'$1\')">@$1</a>');        
+    html = html.replace(/(\s+|\(|&#40;)@(\d+)/g, '$1<a href="' + pageUrl + '?cid=$2" onclick="return PEM.fire(\'selectContent\', \'$2\')">@$2</a>');
+    html = html.replace(/^&#64;(\d+)/g, '<a href="' + pageUrl + '?cid=$1" onclick="return PEM.fire(\'selectContent\', \'$1\')">@$1</a>');
+    html = html.replace(/>&#64;(\d+)/g, '><a href="' + pageUrl + '?cid=$1" onclick="return PEM.fire(\'selectContent\', \'$1\')">@$1</a>');    
+    html = html.replace(/(\s+|\(|&#40;)&#64;(\d+)/g, '$1<a href="' + pageUrl + '?cid=$2" onclick="return PEM.fire(\'selectContent\', \'$2\')">@$2</a>');
+    if (html.indexOf("<poll>") == 0) {
+      html = html.replace("<poll>", "");
+      var allToReplace = html.match(/\[[o*]\] /g);
+      if (allToReplace) {
+        for (var i = 0; i < allToReplace.length; i++) {
+          var toReplace = allToReplace[i];
+          var replaceWith = "[[[radio-"+i+"]]]";
+          if (toReplace == "[*] ")
+            replaceWith = "[[[checkbox-"+i+"]]]";
+          var at = html.indexOf(toReplace);
+          var enter = html.indexOf("\n", at);
+          var enter2 = html.indexOf("<br", at);
+          var enter3 = html.indexOf("</", at);
+          var addBreak = "";
+          if (enter > 0) {
+            if (enter2 > 0 && enter2 > enter) enter2 = -1;
+            if (enter3 > 0 && enter3 > enter) enter3 = -1;
+          }
+          if (enter2 > 0) {
+            if (enter > 0 && enter > enter2) enter = -1;
+            if (enter3 > 0 && enter3 > enter2) enter3 = -1;
+          }
+          if (enter3 > 0) {
+            if (enter2 > 0 && enter2 > enter3) enter2 = -1;
+            if (enter > 0 && enter > enter3) enter = -1;
+          }
+          if (enter >= 0 && enter2 < 0 && enter3 < 0) addBreak = "<br/>";
+          if (enter < 0 || (enter2 > 0 && enter2 < enter)) enter = enter2;
+          if (enter < 0 || (enter3 > 0 && enter3 < enter)) enter = enter3;
+          if (enter < 0) enter = html.length;
+          var label = html.substr(at + 3, (enter - at - 3));
+          var goodLabel = label.replace(/<[^>]*>/g, "");
+          var before = html.substr(0, at + 3);
+          var after = html.substr(enter);
+          html = before + goodLabel + addBreak + after;
+          html = html.replace(toReplace, replaceWith);
+        }
+        html += "\n\n[[[submit_vote]]]";
+      }
+    }
+
+    if (pres) {
+      for (var i = 0; i < pres.length; i++) {
+        html = html.replace("<|_p_" + i + "_p_|>", "<pre style='white-space: -moz-pre-wrap;white-space: -o-pre-wrap;white-space: pre-wrap;word-wrap: break-word;'>" +
+          pres[i].substr(5, pres[i].length - 11).replace(/[$]/g, P.text_editor.dollars).replace(/<br \/>/g,"\n").replace(/&amp;/g, "&").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/&lt;br&gt;/g, "<br>") + "</pre>");
+      }
+    }
+    if (tts) {
+      for (var i = 0; i < tts.length; i++) {
+        html = html.replace("<|_tt_" + i + "_tt_|>", "<tt>" + tts[i].substr(4, tts[i].length - 9).replace(/[$]/g, P.text_editor.dollars).replace(/&amp;/g, "&").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/&lt;br\/&gt;/g, "<br/>") + "</tt>");
+      }
+    }
+    // html = html.replace(/\[\[\[radio-(\d+)]]]/, "<br/><input type='radio' class='poll_button' name='poll_radio_button' id='poll_button$1'/>&nbsp;")
+    html = html.replace(/\[\[\[radio-(\d+)]]]/g, "<input type='radio' class='poll_button' name='poll_radio_button' id='poll_button$1'/>&nbsp;");
+    html = html.replace(/\[\[\[checkbox-(\d+)]]]/g, "<input type='checkbox' class='poll_button' name='poll_radio_button' id='poll_button$1'/>&nbsp;");
+
+    html = html.replace(/\[\[\[submit_vote]]]/, "<br/><br/><button onclick='PEM.fire(\"doVote\");' class='poll_button btn btn-mini'>Submit</button><br/><span id='poll_anonymity_placeholder'></span><br/>");
+
+
+    return html;
+  },
+  convertLatex: function(html, type) {
+    if (!html) return "";
+    html = html.replace(/&amp;amp;/g, '&amp;');
+    var pres = html.match(/<pre>[\s\S]*?<\/pre>/g);
+    if (pres) {
+      for (var i = 0; i < pres.length; i++) {
+        html = html.replace(pres[i], "<|_p_" + i + "_p_|>");
+      }
+    }
+    if (html.indexOf("<p") != 0 && html.indexOf("<div") != 0) { // this is old edit
+      html = html.replace(/^(.{0,3})\n\n/g, "$1<br/><br/>");
+      html = html.replace(/^(.{0,3})\n/g, "$1<br/>");
+      html = html.replace(/((?!<\/p>|ble>|p_\|>|\/ol>|\/ul>|\/li>|<ul>|<ol>|<li>)....)\n\n/g, "$1<br/><br/>");
+      html = html.replace(/((?!<\/p>|ble>|p_\|>|\/ol>|\/ul>|\/li>|<ul>|<ol>|<li>)....)\n/g, "$1<br/>");
+      html = html.replace(/\n\n\n/g, "<br/><br/>");
+    }
+    var tts = html.match(/<tt>[\s\S]*?<\/tt>/g);
+    if (tts) {
+      for (var i = 0; i < tts.length; i++) {
+        html = html.replace(tts[i], "<|_tt_" + i + "_tt_|>");
+      }
+    }
+    //html = html.replace(/\$\$$/, "$$$$<br/><br/>");
+    var arr = html.split('$$');
+    if (arr.length > 2) {
+      // potential latex
+      for (var i = 1; i <= arr.length - 1; i+=2) {
+        var str = arr[i]
+        if (str.length >= 1) {
+            var content_text = P.text_editor.makeLaTeX(str, true);
+            var content_escaped = content_text.replace(/>/g, "&#62;");
+            content_escaped = content_escaped.replace(/</g, "&#60;");
+            content_escaped = content_escaped.replace(/"/g, "&#34;");
+            //var replaced = "<img style='width: auto;vertical-align: baseline;' onload='LatexImageAlign(event)' src='/main/show_latex?" + content_text + "' ondblclick='window.parent.editSelectedLatex()' data-mce-object='latex' data-mce-resize='false' data-mce-src='/main/show_latex?" + content_escaped + "' data-mce-html='" + content_escaped + "'/>"
+            content_escaped = content_escaped.replace(/'/g, "&#39;");
+            var replaced = P.text_editor.dollars + "<latex class='piazza-latex-edit' ondblclick='window.parent.editSelectedLatex()'>" + content_escaped + "</latex>" + P.text_editor.dollars;
+            html = html.replace("$$" + str + "$$", replaced);
+        }
+      }
+    }
+    if (type == "poll") {
+      html = html.replace(/(\n\s*\[[o*]\] )/g, "<br/>$1");
+      //html = html.replace(/<br\/>(\n\[[o*]\] )/, "$1");
+    }
+    if (pres) {
+      for (var i = 0; i < pres.length; i++) {
+        html = html.replace("<|_p_" + i + "_p_|>", "<pre style='white-space: -moz-pre-wrap;white-space: -o-pre-wrap;white-space: pre-wrap;word-wrap: break-word;'>" +
+          pres[i].substr(5, pres[i].length - 11).replace(/[$]/g, P.text_editor.dollars).replace(/<br \/>/g,"\n").replace(/&amp;/g, "&").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/&lt;br&gt;/g, "<br>") + "</pre>");
+      }
+    }
+    if (tts) {
+      for (var i = 0; i < tts.length; i++) {
+        html = html.replace("<|_tt_" + i + "_tt_|>", "<tt>" + tts[i].substr(4, tts[i].length - 9).replace(/[$]/g, P.text_editor.dollars).replace(/&amp;/g, "&").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/&lt;br\/&gt;/g, "<br/>") + "</tt>");
+      }
+    }
+    return html;
+  },
+  convertToLatex: function(html) {
+    if (!html) return "";
+    html = html.replace(/<\/latex>/g, "");
+    html = html.replace(/<latex[^>]*>/g, "");
+    var arr = html.split('$$');
+    if (arr.length > 2) {
+      // potential latex
+      for (var i = 1; i <= arr.length - 1; i+=2) {
+        var str = arr[i]
+        if (str.length >= 1) {
+            var content_text = P.text_editor.makeLaTeX(str);
+            var content_escaped = content_text.replace(/>/g, "&#62;");
+            content_escaped = content_escaped.replace(/</g, "&#60;");
+            content_escaped = content_escaped.replace(/"/g, "&#34;");
+            content_escaped = content_escaped.replace(/'/g, "&#39;");
+            var replaced = P.text_editor.dollars + content_text + P.text_editor.dollars;
+            html = html.replace("$$" + str + "$$", replaced);
+        }
+      }
+    }
+    //html = html.replace(/<\/span>\$\$/g, "$$$$");
+    //html = html.replace(/\$\$<span[^>]*>/g, "$$$$");
+    
+    return html;
+  },
+  removeTags: function(text) {
+    text = $("<span>" + text + "</span>").html(); // remove weird characters
+    text = text.replace(/\r/g, "");
+    text = text.replace(/<p(\s[^>]*?)?>/gi, "");
+    text = text.replace(/<div[^>]*?>/gi, "");
+    text = text.replace(/<\/p>\n/gi, "\n");
+    text = text.replace(/<\/p>/gi, "\n");
+    text = text.replace(/<\/div>\n/gi, "\n");
+    text = text.replace(/<\/div>/gi, "\n");
+    text = text.replace(/<br\s?\/>\n/gi, "\n");
+    text = text.replace(/<br\s?\/>/gi, "\n");
+    text = text.replace(/<br\s?>\n/gi, "\n");
+    text = text.replace(/<br\s?>/gi, "\n");
+    //text = text.replace(/&lt;/g, "<");
+    //text = text.replace(/&gt;/g, ">");
+    text = text.replace(/&nbsp;/gi, " ");
+    text = text.replace(/<pre [^>]*?>/gi, "<pre>");
+    return text;
+  },
+  removeTagsFromPre: function(html) {
+    if (!html) return "";
+    var pres = html.match(/<pre\s?[^>]*?>[\s\S]*?<\/pre>/g);
+    if (pres) {
+      for (var i = 0; i < pres.length; i++) {
+        html = html.replace(pres[i], "<|_p_" + i + "_p_|>");
+      }
+    }
+    var tts = html.match(/<tt>[\s\S]*?<\/tt>/g);
+    if (tts) {
+      for (var i = 0; i < tts.length; i++) {
+        html = html.replace(tts[i], "<|_tt_" + i + "_tt_|>");
+      }
+    }
+    if (pres) {
+      for (var i = 0; i < pres.length; i++) {
+        html = html.replace("<|_p_" + i + "_p_|>", "<pre>" +
+          pres[i].substr(5, pres[i].length - 11).replace(/\$\$/g, "&#36;&#36;").replace(/&amp;/g, "&").replace(/</g, "&lt;").replace(/>/g, "&gt;") + "</pre>");
+      }
+    }
+    if (tts) {
+      for (var i = 0; i < tts.length; i++) {
+        html = html.replace("<|_tt_" + i + "_tt_|>", "<tt>" + tts[i].substr(4, tts[i].length - 9).replace(/\$\$/g, "&#36;&#36;").replace(/</g, "&lt;").replace(/>/g, "&gt;") + "</tt>");
+      }
+    }
+    return html;
+  },
+  getEditorText: function(postfix, noLatex) {
+    var newContent = $('#rich_' + postfix).val();
+    if (P.text_editor.isRich && tinymce.get('rich_' + postfix)) {
+      //var body = $(tinymce.get('rich_' + postfix).getBody());
+      //body.find('#MathJax_Hidden').parent().remove();
+      //body.find('#MathJax_Message').remove();
+      //body.find('#MathJax_Font_Test').remove();
+      newContent = tinymce.get('rich_' + postfix).getContent();
+      if (newContent.indexOf("<p>") != 0)
+        newContent = "<p>" + newContent + "</p>";
+    } else {
+      newContent = P.text_editor.removeTagsFromPre(newContent);
+    }
+    if (noLatex || !P.text_editor.isRich) return newContent;
+    return P.text_editor.convertToLatex(newContent);
+  },
+  getEditorAnonymity: function(postfix) {
+    var anon = $('#anon_' + postfix).val();
+    if (!anon) anon = "no";
+    return anon;
+  },
+  setEditorText: function(options) {
+    if (P.text_editor.isRich)
+      tinymce.get('rich_' + options.postfix).setContent(options.text);
+    else
+      $('#rich_' + options.postfix).val(options.text);
+  },
+  focusEditor: function(postfix) {
+    if (P.text_editor.isRich)
+      tinymce.get('rich_' + postfix).focus();
+    else
+      $('#rich_' + postfix).focus();
+  },
+  injectEditor: function(options) {
+    P.text_editor.createEditor(options);
+    $(".anonymity_selector").val(options.anonymity);
+    if (options.group) {
+      $("#subgroup_dropdown_edit").val(options.group);
+    }
+  },
+  toggleRichtext: function() {
+    P.text_editor.isRich = true;
+    if (P.text_editor.user.config && P.text_editor.user.config.default_editor == "plain")
+      P.text_editor.isRich = false;
+    var editor = "rte";
+    if (P.text_editor.isRich) editor = "plain";
+    P.text_editor.user.config.default_editor = editor;
+    PA.call_pj("user.update", {"default_editor":editor}, 1);
+    if (P.text_editor.isRich) {// switch from rich to plain
+      if (typeof(tinymce) != "undefined") {
+        for (var postfix in P.text_editor.active) {
+          var text = P.text_editor.getEditorText(postfix);
+          tinymce.execCommand('mceRemoveEditor',true, 'rich_' + postfix);
+          text = P.text_editor.removeTags(text);
+          $('#rich_' + postfix).val(text);
+          $('#rich_' + postfix).focus();
+        }
+      }
+      $('.richtext_toggle').html("use rich text editor");
+      P.text_editor.isRich = false;
+    } else {
+      for (var postfix in P.text_editor.active) {
+        var options = P.text_editor.callbacks[postfix];
+        options.text = $('#rich_' + postfix).val();
+        var height = $('#rich_' + postfix).css("height");
+        if (height) options.height = parseInt(height);
+        P.text_editor.createEditor(options);
+      }
+      $('.richtext_toggle').html("use plain text editor");
+      P.text_editor.isRich = true;
+    }
+  },
+  init: function(module) {
+  
+    // see how many dollars we need
+    if ("a".replace("a", "$$") == "$$")
+      P.text_editor.dollars = "$$";
+  
+    P.text_editor.template = module.template;
+
+    PEM.addListener("makeHtml", P.text_editor.makeHtml);
+    PEM.addListener("convertToLatex", P.text_editor.convertToLatex);
+    PEM.addListener("getEditorText", P.text_editor.getEditorText);
+    PEM.addListener("getEditorAnonymity", P.text_editor.getEditorAnonymity);
+    PEM.addListener("getAnonymityOptions", P.text_editor.getAnonymityOptions);
+    PEM.addListener("setEditorText", P.text_editor.setEditorText);
+    PEM.addListener("injectEditor", P.text_editor.injectEditor);
+    PEM.addListener("cancelOne", P.text_editor.cancel);
+    PEM.addListener("cancelOneForce", P.text_editor.doCancel);
+    PEM.addListener("cancelAll", P.text_editor.cancelAll);
+    PEM.addListener("hasActiveEditor", P.text_editor.hasActiveEditor);
+    PEM.addListener("toggleRichtext", P.text_editor.toggleRichtext);
+    PEM.addListener("focusEditor", P.text_editor.focusEditor);
+    PEM.addListener("previewPost", P.text_editor.previewPost);
+/*
+    MathJax.Hub.Config({
+      jax: ["input/TeX","output/HTML-CSS"],
+      extensions: ["tex2jax.js"],//,"MathMenu.js","MathZoom.js"],
+      TeX: {
+        extensions: ["AMSmath.js","AMSsymbols.js","noErrors.js","noUndefined.js"]
+      },
+      tex2jax: {
+        inlineMath: [ ['$$','$$'] ],
+        displayMath: [ [] ]
+      },
+      "HTML-CSS": { availableFonts: ["TeX"] }
+    });
+*/
+    if (typeof(tinymce) != 'undefined') {
+      if (!P.text_editor.tinymceInit) {
+        var profs = [];
+        if (P.top_bar.network && P.top_bar.network.profs)
+          profs = P.top_bar.network.profs;
+        P.text_editor.tinymceInit = true;
+        tinymce.init({
+          theme : "modern",
+          relative_urls: false,
+          plugins: [
+            "advlist autolink lists link image charmap preview",
+            "searchreplace media autocomplete",
+            "insertdatetime table equation directionality paste"
+          ],
+          valid_elements: "*[*]",
+          toolbar: "bold italic | alignleft aligncenter | ltr rtl | bullist numlist | link image insertfile | equation prebutton ttbutton | preview | help",
+          skin_url: "/modules/tinymce/skins/lightgray",
+          file_browser_callback : myFileBrowser,
+          statusbar: true,
+          resize: true,
+          gecko_spellcheck : true,
+          browser_spellcheck: true,
+          autocomplete_options: { "options": profs },
+          autocomplete_min_length: 1,
+            init_instance_callback: function(inst){
+            if (inst.id == 'fake_editor') {
+              setTimeout(function(){tinymce.execCommand('mceRemoveEditor',true, 'fake_editor');}, 100);
+              return;
+            }
+            tinymce.get(inst.id).focus();
+            var postfix = inst.id.replace("rich_", "");
+            P.text_editor.oldText[postfix] = tinymce.get(inst.id).getContent();
+          },
+          setup : function(ed) {
+            ed.on("click keyup", function(evt) {
+              actualCaretPositionBookmark = ed.selection.getBookmark(true);
+            });
+            ed.on("keydown", function(evt) {
+              if (evt.keyCode == 9){ // tab pressed
+                var elem = ed.selection.getNode();
+                if (elem.nodeName == "PRE") {
+                  ed.selection.setContent('\x09');
+                  evt.preventDefault();
+                  evt.stopPropagation();
+                  return false;
+                }
+              }
+              return true;
+            });
+          }
+       });
+      }
+      tinymce.execCommand('mceAddEditor',true, 'fake_editor');
+    }
+  }
+};

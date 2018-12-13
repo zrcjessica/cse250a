@@ -1,0 +1,2085 @@
+P.top_bar = {
+  changeUrl: false,  // if topbar should change URL of the site; only for dashboard
+  nid: "",
+  user: {},
+  template: {},
+  globalNotifications: 0,
+  isDashboard: false,
+  showingInactive: false,
+  onWhatPage: false,
+  careersNotifications: [],
+  jobStatusClicked: false,
+  waitListLoadingInfo: {loading: false, loaded: false, which_modal: null},
+  
+  // Note: there are some other constants related to the survey module located in 
+  // company_survey.js
+  // constants related to the select company survey modal:
+  SELECT_COMPANY_MODAL_CONSTANTS : {
+    // the message indicating whether this user has seen this year's select company modal or not:
+    SEEN_MESSAGE_SELECT_MODAL_THIS_YEAR: "select_company_2017",
+    // events logged to vertica:
+    EVENT_SHOW_SELECT_MODAL : 'show_select_company_modal',
+    EVENT_DISMISS_SELECT_MODAL : 'dismiss_select_company_modal',
+    EVENT_DONE_SELECT_MODAL : 'done_select_company_modal'
+  },
+
+  // toggleModal: function() {
+  //   $('.modal_background').toggle();
+  // },
+  
+  showWaitlistModal: function() {
+    $('#waitlist_modal_with_image').show();
+  },
+
+  showWaitlistModal2: function() {
+    $('#waitlist_modal_without_image').show();
+  },
+  
+  clickJobStatus: function() {
+    P.top_bar.jobStatusClicked = true;
+    $('#job_status_timer').hide();
+    PA.call_pj("generic.event_to_requests", {event: "careers.clicked_job_dropdown"}, 1);
+  },
+  companies: ['21 Inc', '2U, Inc.', '3M', '42Floors', '451 Research', '500px', '50onRed', '6fusion', '6Wunderkinder', 'A.T. Kearney', 'A3 Communications', 'A9', 'Abalta Technologies', 'ABB Group', 'Abbott', 'About.com', 'Academia.edu', 'Accel Partners', 'Accenture', 'Accompani', 'Achieve Internet', 'Acquia', 'Acronis', 'Actiance', 'Actifio', 'Activate', 'Activehours', 'Acuity', 'Acumen', 'Acxiom Corporation', 'Adaptive Insights', 'Adaptly', 'ADATAO, Inc.', 'Addepar', 'Adecco Group', 'Adobe', 'AdParlor', 'Adroll', 'Adyen', 'Aetna', 'Affirm', 'Affirmed Networks', 'Aflac', 'Agilent Technologies', 'AgilOne', 'Airbnb', 'Airhop Communications', 'Airtime', 'AirVM', 'Airware', 'AirWatch', 'Akamai', 'Akuna Capital', 'Alcoa', 'AllianceBernstein', 'Allianz', 'Allstate', 'Allston Trading', 'Altschool', 'Amazon', 'Amazon', 'AMD', 'American Express', 'American Megatrends, Inc', 'American Specialty Health', 'AMI', 'Amplitude Analytics', 'Analytica', 'Anaplan', 'Andreessen Horrowitz', 'Anheuser-Busch InBev', 'Anki', 'ANSYS', 'Anzalone Liszt Grove Research', 'Aon Corporation', 'Aon Risk Solutions', 'Apigee', 'App Annie', 'AppDynamics', 'AppFolio', 'Appirio', 'Applause', 'Apple', 'Applied Predictive Technologies', 'Applovin', 'AppNexus', 'Apportable', 'AppSense', 'Apptio', 'Aptare', 'APX Labs', 'Arcadia Data, Inc.', 'Archer Daniels Midland', 'Artsy', 'Aruba Networks', 'ASK Consulting', 'AT&T', 'athenahealth', 'Atos', 'AudaExplore', 'August', 'Autodesk', 'AutoGrid Systems', 'Automattic', 'Avande Inc.', 'Avant Credit', 'Avatar Securities', 'Avegant', 'Aviso', 'Avnet Technology Solutions', 'Avvo', 'Awake Networks', 'Ayasdi', 'Azure Capital Partners', 'Backplane', 'Bae Systems', 'Bank of America Corp.', 'Bank of America Merrill Lynch', 'Bank of Nova Scotia', 'Barclays', 'Bazaarvoice', 'BDNA Corporation', 'Beats Electronics', 'Beibei', 'Bentley Systems', 'Berkshire Hathaway', 'Bessemer Venture Partners', 'Best Buy', 'Betable', 'Better Finance', 'BetterCloud', 'Betterment', 'Bidgely', 'Big Fish Games', 'Biovia', 'Birst', 'BitGo', 'BitPay', 'BlaBlaCar', 'Blackbaud', 'Blend Labs', 'Bloom Energy', 'BloomReach', 'Blue Apron', 'Blue Jeans Network', 'BlueData', 'Bluefin Trading', 'BlueVine', 'BMW', 'BNP Paribas', 'Boeing', 'Booyah', 'Booz Allen Hamilton', 'Bop.FM', 'Bose', 'Boston Consulting Group', 'Boundary', 'Boundless Learning', 'Box', 'Boxed', 'BP', 'Braintree', 'Brammo', 'Bread', 'Bridgepoint Education', 'Bridgewater', 'Bridgewell Resources', 'BrightEdge', 'Brillio', 'Broadcom', 'Brocade', 'Bromium', 'Brown Bag Marketing', 'Bugcrowd', 'Bulldog Solutions', 'Buzzfeed', 'CA Technologies', 'Cadence', 'CallidusCloud', 'Cambrian Innovation', 'Campaign Monitor', 'Canon', 'Canonical', 'Capital One', 'Capriza', 'Captricity', 'Carbon3D', 'CarbonLighthouse', 'Cardinal Health', 'Carpathia Hosting', 'Carrefour', 'Caterpillar', 'Centrify', 'Centro', 'Cerner', 'CGI', 'Charles Schwab', 'Checkr', 'Chevron', 'China National Petroleum', 'China North Industries Group', 'China Telecommunications', 'CipherCloud', 'Cirba', 'Cisco Systems', 'Citigroup', 'Citrix', 'Clarabridge', 'Clarizen', 'ClassPass', 'Classy', 'ClearSlide', 'CliQr', 'Cloudability', 'Cloudera', 'CloudFlare', 'Cloudgenix', 'CloudPhysics', 'ClusterHQ', 'Cobham', 'Coca-Cola', 'Code42', 'Codecademy', 'Cognizant Technology', 'Coho Data', 'Coinbase', 'CollabNet', 'Comcast', 'CommonBond', 'Commonwealth Bank of Australia', 'CommVault', 'Compuware', 'Concur Technologies', 'Confide', 'ConocoPhillips', 'Constant Contact', 'Contently', 'Continental', 'CoreOS', 'Cotap', 'Couchbase', 'Counsyl', 'Coupa', 'Coupang', 'Coupons.com', 'Coursera', 'CoverHound', 'Covestor', 'Cratejoy', 'Credit Karma', 'Credit Suisse Group', 'Crittercism', 'CrowdFlower', 'CrowdStrike', 'CrowdSurge', 'CruiseCritic', 'Crunchyroll', 'Cummins Inc.', 'Cumulus Networks', 'CustomMade', 'CVRx', 'CVS Caremark', 'Cyanogen', 'Cybereason', 'Cybersource (Owned by Visa)', 'D.E. Shaw', 'D2L', 'Dassault Systemes', 'Data Dynamics', 'Data-Gravity', 'Databricks', 'DataCore Software', 'DataFox', 'DataGravity', 'Datameer', 'DataRobot', 'Dato', 'Datto', 'DC Devices', 'DDN Storage', 'Declara', 'Deem', 'Deliveroo', 'Delivery Hero', 'Dell', 'Deloitte', 'Delphix', 'Delta Air Lines', 'Dermira', 'Deutsche Bank', "Dick's Sporting Goods", 'DigitalOcean', 'DIRECTV', 'Discover (Financial Services)', 'Disqus', 'DivX', 'Docker', 'Docusign', 'DogVacay', 'Dolby Laboratories', 'Domo', 'DoorDash', 'Dow Chemical', 'Dow Jones', 'Draft Kings', 'Drawbridge', 'drchrono', 'Dropbox', 'Dropcam', 'Druva', 'Duetto', 'Duo Security', 'Duolingo', 'DuPont', 'Dynamic Signal', 'E la Carte, Inc', 'Earnest', 'EAT Club', 'eBay/Paypal', 'Ebix', 'Edgecase', 'Edmodo', 'Elastic', 'ElasticBox', 'Electric Cloud', 'Electronic Arts', 'Elemental Technologies', 'EMC', 'Emdeon', 'Engility', 'Enjoy', 'Enjoy Inc', 'Equifax', 'Equifax Personal Solutions', 'Equinix', 'Ericsson', 'Ernst & Young', 'ESPN', 'Esri', 'Eta Devices', 'Eventbrite', 'Evernote', 'EverTrue', 'Evntlive', 'Expensify', 'Extreme Networks', 'Exxon Mobil', 'Eyefluence', 'F5 Networks', 'Fab', 'Facebook', 'Factual', 'Famo.us', 'Fanatics', 'Fannie Mae', 'Farfetch', 'FedEx Express', 'FICO', 'Fidelity Investments', 'FiftyThree', 'Fiksu', 'Financial Engines', 'Fireeye', 'FiscalNote', 'Fisker Automotive', 'Fitbit', 'FitBOLD', 'Fitch Ratings', 'Fiverr', 'flaregames', 'Flatiron Health', 'Flipboard', 'Flipkart', 'Ford Motor', 'ForgeRock', 'FormLabs', 'Formswift', 'Fortinet', 'Forward Networks', 'FoundationDB', 'Foursquare', 'Freddie Mac', 'FreeWheel', 'Freshdesk', 'Fujifilm Holdings', 'FullScreen, Inc.', 'Fundbox', 'Funding Circle', 'Fuze', 'Gainsight', 'Gartner', 'Gazprom', 'Genentech', 'General Dynamics', 'General Electric', 'General Motors Corporation', 'Genesys', 'Gengo', 'Genius', 'Getaround', 'Gigamon', 'Gigya', 'Gilt Groupe', 'Glassdoor', 'GlaxoSmithKline', 'Glencore International', 'Global Media (Sample)', 'Glow', 'Glue Networks', 'GMT Capital', 'Go Pro', 'GoDaddy', 'Goldman Sachs', 'Good Technology', 'GoodData', 'Google', 'GoPro', 'Grabcad', 'Grabtaxi', 'Greenroad', 'Greylock', 'Groupon', 'Grovo', 'Guardant Health', 'Guidespark', 'Hailo', 'Halliburton', 'Hallmark eCards', 'Hampton Creek', 'Handy', 'Hanhua Financial', 'HarperCollins', 'hCentive', 'HealthTap', 'Hearsay Social', 'HelloFresh', 'Hewlett-Packard', 'HiBot', 'Highfive', 'Highwinds', 'Hilcorp', 'Hipmunk', 'Hirenetics', 'HireVue', 'Hitachi Data Systems', 'Hoffmann-La Roche', 'Hola', 'Home Depot', 'Home24', 'Honda Motor', 'Honest', 'Honest Co.', 'Honeywell International', 'Hootsuite', 'Hortonworks', 'HotelTonight', 'House Trip', 'Houzz', 'HSBC Holdings', 'Huawei Investment & Holding', 'Hubspot', 'Hudl', 'Human Longevity Inc', 'Humana', 'Humble Bundle', 'Hyland', 'Hyundai Motor', 'IAC', 'IBM', 'iControl Networks', 'iCracked', 'Identiv', 'if(we)', 'IFTTT', 'Illumina', 'Illumio', 'ImageShack', 'Imgur', 'Indiegogo', 'Industrial & Commercial Bank of China', 'Industrial Toys', 'Infer, Inc.', 'Infinidat', 'Infinio', 'Inflection', 'Infoblox', 'Informatica', 'Infusionsoft', 'ING Group', 'Inkling', 'InMobi', 'InsideSales.com', 'InsightSquared', 'Instacart', 'Instart Logic', 'Instructure', 'Intarcia Therapeutics', 'Intel', 'Intentional Software', 'Interactions Corporation', 'Interactive Intelligence', 'Interana', 'International Airlines Group', 'InterSystems Corp.', 'Intuit', 'InVision', 'Invodo', 'Ionic Security', 'iRobot', 'IronSource', 'iSight Partners', 'ITC Holdings Corp.', 'J.P. Morgan Chase & Co.', 'Jane Street', 'Japan Post Holdings', 'Jasper Technologies', 'JauntVR', 'Jawbone', 'JD.com', 'Jet Propulsion Laboratory', 'Jibo', 'Jinfonet Software', 'Jive Software', 'Johnson & Johnson', 'Johnson Controls', 'Julep', 'Juniper Networks', 'JustFab', 'Jut', 'JX Holdings', 'Kabam', 'Kaggle', 'Kahuna', 'Kasisto, Inc', 'Kaspersky', 'Kaspersky Lab', 'kCura', 'Kensho', 'Kenshoo', 'Khan Academy', 'Kia Motors', 'King Street Capital Management, L.P.', 'Kiwi', 'Knewton', 'Komatsu', 'Kony', 'Koudai Shopping', 'KPMG', 'Kraft Foods', 'Kroger', 'Kronos', 'Krux', 'Kuaidi Dache', "L'Oreal", 'Lab126 (Amazon)', 'LanzaTech', 'Laserfiche', 'LaShou', 'Laurel & Wolf', 'LeadQual', 'Leap Motion', 'LearnVest', 'Legendary Entertainment', 'Lending Club', 'Lenovo', 'Lenovo Group', 'LG Electronics', 'LGS Innovations', 'Liberty Mutual', 'Liberty Mutual Insurance Group', 'Life360', 'Lifesize (division of Logitech)', 'LightCyber', 'Lightspeed POS', 'Lightspeed Venture Partners', 'Limelight Networks', 'Lithium Technologies', 'Livefyre', 'LiveRamp', 'Location Labs', 'Lockheed Martin', 'Looker', 'Lookout', "Lowe's", 'Lufthansa Group', 'Lukoil', 'Lyft', 'Lynda.com', 'Lytro', 'MACOM', "Macy's", 'MagCanica', 'Magic Leap', 'Maginatics, Inc', 'Main Street Hub', 'MangoHealth', 'MapR Technologies', 'Marin Software', 'MarkLogic', 'MathWorks', 'Mattermark', 'Maxthon', 'Maxwell Health', "McDonald's", 'McKesson', 'McKinsey & Company', 'MCSG Technologies', 'Medallia', 'Mellanox Technologies', 'MemSQL', 'Mentor Graphics', 'Merck', 'Mesosphere', 'Metamarkets', 'Metanautix', 'MetLife', 'MetraTech', 'Metromile', 'Michelin', 'Microsoft', 'Mimosa', 'Mindbody', 'Minted', 'Mirantis', 'Misfit Wearables', 'Mission Motors', 'Mitsubishi', 'Mixpanel', 'Mobileye', 'Mocana Corporation', 'Moderna', 'Modria', 'MongoDB', 'Monticello Consulting Group', 'Moog', 'Morgan Stanley', 'MSCI Inc.', 'Munchery', 'Music Messenger', 'MyFitnessPal', 'Myntra', 'Nanotronics Imaging', 'Nantero', 'Narrative', 'NASA', 'National Instruments', 'NerdWallet', 'Nest', 'Nest Labs', 'NetApp', 'NetBurner', 'Netezza', 'Netflix', 'Netskope', 'Neusoft', 'Neustar, Inc.', 'New Relic', 'New York Life Insurance', 'NewLight Technologies', 'News Corp.', 'Nexius', 'Nextdoor', 'NextNav', 'Niara, Inc.', 'Nielsen', 'Nimble Storage', 'Nissan Motor', 'NodePrime', 'Nokia', 'NoRedInk', 'Northrop Grumman', 'Northwestern Mutual', 'Novartis', 'Novetta', 'NovoEd', 'Nuage Networks', 'Nutanix', 'Nutmeg', 'Nutrimatix', 'Nvidia', 'oDesk', 'Okta', 'Omada Health', 'Omaze', 'OnDeck', 'OneCloud Software', 'OneLogin', 'Open English', 'OpenDNS', 'OpenX', 'Opower', 'Optaros', 'Optimizely', 'Oracle', 'Orbital ATK', 'Orbital Insight', 'Orbitz Worldwide', 'Originate', 'Oscar', 'Oscar Health Insurance', 'Osmo', 'Oyster', 'PagerDuty', 'Palantir', 'Pantheon', 'Panzura', 'Path', 'Patreon', 'Patterson + Sheridan, LLP', 'PayScale, Inc.', 'Pebble', "People's Insurance Co. of China", 'PepsiCo', 'Percolate', 'PernixData', 'Pfizer', 'Philip Morris International', 'Piazza', 'PillPack', 'PIMCO', 'Pindrop Security', 'Ping Identity Corporation', 'Pinterest', 'Piston Cloud Computing, Inc.', 'Pixar', 'Pixar Animation Studios', 'Plain Vanilla Games', 'Planet Labs', 'Plex', 'Plex Systems', 'PLUMgrid Inc.', 'Pluralsight', 'Pluribus Networks', 'Poachable', 'Pocket', 'Pocket Gems', 'Polyvore', 'Pond5', 'POPSUGAR', 'Postmates', 'Prezi', 'Primary Data', 'PrimeRevenue', 'Privalia', 'Procter & Gamble', 'Propser', 'Prosper', 'Prosper Marketplace', 'Proterra', 'Proteus Digital Health', 'Prudential Financial', 'PubMatic', 'PunchTab', 'Puppet Labs, Inc.', 'Pure Storage', 'QLogic Corporation', 'Qualcomm', 'Qualtrics', 'Quantcast', 'Quanttus', 'Qubit', 'Qubole', 'Quickr', 'Quid', 'Quirky', 'Quizlet', 'Quora', 'Rackspace', 'Raise Marketplace', 'Rally.org', 'Randstad Holding', 'ravello systems', 'Raytheon', 'Razer', 'Razorfish', 'ReachLocal', 'Realm', 'Recurly', 'Red Hat', 'Redfin', 'RelateIQ', 'Relcy', 'Reliance Industries', 'Remind', 'Reonomy', 'RES Software', 'Rethink Robotics', 'RIA IN A BOX', 'Rinse', 'Riot Games', 'Rite Aid', 'Riverbed Technology', 'Robert Bosch', 'Robinhood', 'Roche Group', 'Rocket Fuel', 'RocketLawyer', 'Rosetta', 'Royal Bank of Canada', 'Royal Bank of Scotland Group', 'Royal Dutch Shell', 'Rumble', 'Safeway', 'SAIC', 'Salesforce.com', 'SaltStack', 'Samsung Electronics', 'SAP', 'SAS Institute', 'Sazze Partners', 'Scaled Inference', 'Scanadu', 'Schlumberger', 'Schneider Electric', 'ScienceLogic', 'Scopely', 'Scorebeyond', 'Scribd', 'Scripted', 'Seagate Technology', 'Sears Holdings', 'SeatGeek', 'Secret', 'SecureAuth Corporation', 'Sequoia', 'ServiceTitan', 'Shake Inc.', 'Shakelaw', 'Shazam', 'Shopify', 'shopkick', 'Shopular', 'Shots Mobile, Inc.', 'Shuddle', 'Shutterfly', 'Shyp', 'Siemens', 'Sift Science', 'SignalFx', 'Signifyd', 'Silver Spring Networks', 'Simplivity', 'SK Holdings', 'Skyhigh Networks', 'Skytap', 'Slack', 'Slice', 'SmartDrive Systems', 'Smartsheet', 'SmartThings', 'Smule', 'Snapchat', 'Snapdeal', 'SnapLogic', 'Snowflake Computing', 'Social Finance', 'SocialRadar', 'Socrata', 'Sodexo', 'Solar Turbines', 'SolidFire, Inc.', 'Songkick', 'Sonos', 'Sony', 'Sophos', 'Sosh', 'Sourcefire', 'SpaceX', 'SpareFoot', 'Sparta Systems, Inc.', 'SpiceWorks', 'Spire', 'Splice Machine', 'Splunk', 'SpoonRocket', 'Sportsbet', 'Spotify', 'Sprig', 'Sprinklr', 'Sprint Nextel', 'Square', 'Stack Exchange', 'StackCommerce', 'Staples', 'State Bank of India', 'State Farm Insurance Cos.', 'State Grid', 'Stion', 'Stormpath', 'Strava', 'Stride Labs', 'Stripe', 'Strongview', 'Stryker', 'StyleSeat', 'Sumitomo Mitsui Financial Group', 'Sumo Logic', 'Sun Life Financial', 'Sunrun', 'SurveyMonkey', 'Susquehanna International Group', 'SwiftKey', 'Swiftype', 'Switch Communications', 'Symantec', 'Synack', 'Synchronoss Technologies', 'Synlogic', 'Synopsys', 'T&D Holdings', 'Tableau Software', 'Tactile', 'TalentWise', 'Tango', 'Tanium', 'Tapingo', 'Tarana', 'Tarana Wireless', 'Target', 'Taser', 'TASER International', 'TaskRabbit', 'Tata Motors', 'Tata Steel', 'Taulia', 'TechTarget', 'Techtronic Industries NA (TTI Group)', 'Teespring', 'Tegile Systems', 'Telerik', 'TellApart', 'Telstra', 'Tenable Network Security', 'Teradata', 'Teradici', 'Tesla', 'The Climate Corporation', 'The Sourcing Institute', 'Theatro', 'Theranos', 'ThinAir', 'THINK Surgical', 'ThoughtSpot', 'ThoughtWorks', 'ThreatStream', 'Throwdown Labs', 'Thumbtack', 'ThyssenKrupp', 'TIBCO', 'TigerText', 'Tilt', 'Time Warner', 'Timeful', 'Tintri', 'Tintri Storage', 'Tokyo Electric Power', 'Tokyo Gas', 'Tongal', 'TopLine Game Labs', 'Toronto-Dominion Bank', 'Tortuga Logic', 'Toshiba', 'Tower Research Capital', 'Toyota Motor', 'Toytalk', 'TPG Capital, L.P.', 'TransferWise', 'Trendy Group', 'Trexquant Investment LP', 'TripAdvisor', 'Troo.ly', 'True North Therapeutics', 'TuneIn', 'Twilio', 'Twitter', 'U.S. Navy', 'U.S. Postal Service', 'uBeam', 'Uber', 'UBS', 'Udacity', 'Udemy', 'Ultimate Software', 'Unilever', 'Union Bank', 'United Continental Holdings', 'United Parcel Service', 'United Technologies', 'UnitedHealth Group', 'Unity Technologies', 'Urban Teacher Center', 'US Navy', 'Usermind', 'UserTesting', 'Valero Energy', 'VCE', 'Veeam Software', 'Veeva Systems', 'VeloCloud Networks, Inc.', 'VeriSign', 'Verizon', 'Verizon Communications', 'Verne Global', 'Vessel', 'ViaSat', 'Vicarious Visions', 'View Inc.', 'VigLink', 'Virool', 'Visual Supply Co', 'VMware', 'Vodafone Group', 'Volkswagen', 'Volvo', 'Vormetric', 'Vox Media', 'Voxy', 'Vungle', 'Wal-Mart Stores', 'Walgreen', 'Walker & Company Brands, Inc', 'Walt Disney', 'Wanelo', 'Warby Parker', 'WatchDox', 'Wattpad', 'Wayfair', 'Wealthfront', 'Web.com', 'Weebly', 'Wells Fargo', 'Welltok', 'Westpac Banking', 'WeWork', 'Wikia', 'Wikihow', 'WillowTree', 'Wilocity', 'Wix', 'Wizeline', 'Wonder Workshop', 'Workday', 'WorldRemit', 'Xamarin', 'Xapo', 'Xero', 'Xerox', 'Xiaomi', 'Yahoo', 'Yammer', 'Yardi', 'Yello Mobile', 'Yelp', 'Yext', 'YPlan', 'Zaarly', 'Zanbato', 'Zappos', 'Zazzle', 'Zenefits', 'ZenPayroll', 'Zerto', 'Zillow', 'Zimride', 'Zomato', 'zulily', 'Zynga', 'Fuze', 'Epic Systems'],
+  majors:['Accounting','Actuarial Science','Advertising','Aeronautical Engineering','Aerospace Engineering','Agrobusiness','Animal Science','Anthropology','Applied Computer Science','Applied Mathematics','Applied Statistics','Architecture','Asian Studies','Astronomy','Astrophysics','Atmospheric Science','Audio Production and Design','Automation and Robotics','Bio-behavioral Health','Biochemistry','Bioengineering','Biological Sciences','Biology','Biomedical Engineering','Biotechnology','Business','Business Administration','Chemical Engineering','Chemistry','Civil Engineering','Cognitive Science','Commerce','Communication','Computer Engineering','Computer Information Systems','Computer Science','Design Computing','Digital Media','Early Childhood Education','Ecology','Economics','Electrical and Computer Engineering','Electrical Engineering','Electronics','Engineering','English','Entrepreneurship','Environmental Science','Exercise Science','Film Studies','Financial Economics','Food Science','Health and Societies','History','Hotel Administration','Human resources management','Industrial Engineering','Information Systems','Internet Technology Management','Journalism','Linguistics','Management Engineering','Marketing','Masters in Business Administration','Materials Science','Mathematics','Mechanical Engineering','Microbiology','Molecular and Cell Biology','Nano-engineering','Natural Resource Management','Network and Security','Neurobiology','Neuroscience','Nursing','Nutrition','Operations Research','Pharmacy','Philosophy','Physics','Political Science','Psychology','Public Health','Public Policy','Sociology','Software Engineering','Statistics','Undecided','Visual Art','Web Design','Zoology'],
+  roles: ['Aerospace Engineer', 'Application Engineer', 'Biological Engineer', 'Biomedical Engineer', 'Chemical Engineer', 'Civil Engineer', 'Electrical Engineer', 'Environmental Engineer', 'Field Service Engineer', 'Geological Engineer', 'Hardware Engineer', 'Industrial Engineer', 'Materials Engineer', 'Mechanical Engineer', 'Nuclear Engineer', 'Petroleum Engineer', 'Quality Engineer', 'Sales Engineer', 'Security Engineer', 'Software Engineer', 'Stationary Engineer', 'Systems Engineer', 'Telecommunications Engineer', 'Database Engineer', 'Backend Engineer', 'Frontend Engineer', 'Full Stack Engineer', 'Data Scientist', 'Mobile Engineer', 'Embedded Systems Engineer', 'Distributed Systems Engineer', 'Networks Engineer', 'Firmware Engineer', 'Designer', 'Product Manager', 'Ux/Ui Designer', 'Marketing Associate', 'Communications Associate', 'Program Manager', 'Project Manager', 'Graphic Designer', 'Analyst', 'Laboratory Technician', 'Business System Analyst', 'Data Analyst', 'Clinical Researcher', 'Clinical Pharmacy Assistant', 'Computing Consultant', 'Environmental Specialist', 'Insurance Representative', 'Laboratory Assistant', 'Medical Services Assistant', 'Pharmaceutical Assistant', 'Pharmaceutical Technician', 'Research Assistant', 'Research Technician', 'Researcher', 'Statistician', 'Systems Analyst', 'Technical Writer', 'Consultant', 'Business Analyst', 'Business Consultant', 'Financial Consultant', 'Healthcare Consultant', 'Management Consultant', 'Political Strategist', 'Recruiter', 'Sales Consultant', 'Strategy Consultant', 'Tax Advisor', 'Financial Analyst', 'Accountant', 'Auditor', 'Investment Banking Analyst', 'Account Executive', 'Account Manager', 'Account Representative', 'Sales Representative', 'Brand Ambassador', 'Business Development Representative', 'Customer Care Representative', 'Brand Manager', 'Copywriter', 'Creative Assistant', 'Digital Marketer', 'Market Research Analyst', 'Marketing Analyst', 'Media Relations Coordinator', 'Public Relations Coordinator', 'Social Media Marketing Manager', 'Operations Associate', 'Business Manager', 'Administrative Assistant', 'Executive Assistant', 'Case Manager', 'Contract Analyst', 'Court Messenger', 'Legal Analyst', 'Legal Secretary', 'Paralegal'],
+  places: ['Palo Alto, CA', 'Mountain View, CA', 'Sunnyvale, CA', 'Cambridge, MA', 'Alabama', 'Birmingham metropolitan area, Alabama', 'Alaska', 'Anchorage metropolitan area, Alaska', 'Arizona', 'Phoenix metropolitan area, Arizona', 'Tucson metropolitan area, Arizona', 'Arkansas', 'Little Rock metropolitan area, Arkanasa', 'California', 'Los Angeles metropolitan area, California', 'San Francisco Bay metropolitan area, California', 'San Diego metropolitan area, California', 'Colorado', 'Denver metropolitan area, Colorado', 'Connecticut', 'Hartford metropolitan area, Connecticut', 'Bridgeport metropolitan area, Connecticut', 'Delaware', 'Dover metropolitan area, Delaware', 'Florida', 'Miami metropolitan area, Florida', 'Orlando metropolitan area, Florida', 'Tampa metropolitan area, Florida', 'Jacksonville metropolitan area, Florida', 'Georgia', 'Atlanta metropolitan area, Georgia', 'Hawaii', 'Honolulu metropolitan area, Hawaii', 'Idaho', 'Boise metropolitan area, Idaho', 'Illinois', 'Chicago metropolitan area, Illinois', 'Indiana', 'Indianapolis metropolitan area, Indiana', 'Iowa', 'Des Moines metropolitan area, Iowa', 'Kansas', 'Wichita metropolitan area, Kansas', 'Kentucky', 'Louisville metropolitan area, Kentucky', 'Louisiana', 'New Orleans metropolitan area, Louisiana', 'Maine ', 'Portland metropolitan area, Maine', 'Maryland ', 'Baltimore metropolitan area, Maryland', 'Massachusetts ', 'Boston metropolitan area, Massachusetts', 'Michigan ', 'Detroit metropolitan area, Michigan', 'Minnesota', 'Minneapolis metropolitan area, Minnesota', 'Mississippi ', 'Jackson metropolitan area, Mississippi', 'Missouri ', 'St. Louis metropolitan area, Missouri', 'Kansas City metropolitan area, Missouri', 'Montana', 'Billings metropolitan area, Montana', 'Nebraska ', 'Omaha metropolitan area, Nebraska', 'Nevada ', 'Las Vegas metropolitan area, Nevada', 'New Hampshire ', 'Manchester metropolitan area, New Hampshire', 'New Jersey ', 'Trenton metropolitan area, New Jersey', 'New Mexico ', 'Albuquerque metropolitan area, New Mexico', 'New York ', 'New York metropolitan area, New York', 'North Carolina ', 'Charlotte metropolitan area, North Carolina', 'North Dakota ', 'Fargo metropolitan area, North Dakota', 'Ohio ', 'Cleveland metropolitan area, Ohio', 'Columbus metropolitan area, Ohio', 'Cincinnati metropolitan area, Ohio', 'Oklahoma ', 'Oklahoma City metropolitan area, Oklahoma', 'Oregon ', 'Portland metropolitan area, Oregon', 'Pennsylvania', 'Philadelphia metropolitan area, Pennsylvania', 'Pittsburgh metropolitan area, Pennsylvania', 'Rhode Island ', 'Providence metropolitan area, Rhode Island', 'South Carolina ', 'Greenville metropolitan area, South Carolina', 'Columbia metropolitan area, South Carolina', 'South Dakota ', 'Sioux Falls metropolitan area, South Dakota', 'Tennessee ', 'Nashville metropolitan area, Tennessee', 'Memphis metropolitan area, Tennessee', 'Texas ', 'Dallas metropolitan area, Texas', 'Houston metropolitan area, Texas', 'San Antonio metropolitan area, Texas', 'Austin metropolitan area, Texas', 'Utah ', 'Salt Lake City metropolitan area, Utah', 'Vermont ', 'Burlington metropolitan area, Vermont', 'Virginia ', 'Virginia Beach metropolitan area, Virginia', 'Richmond metropolitan area, Virginia', 'Washington', 'Seattle metropolitan area, Washington', 'Washington DC metropolitan area', 'West Virginia ', 'Huntingon metropolitan area, West Virginia', 'Wisconsin ', 'Milwaukee metropolitan area, Wisconsin', 'Madison metropolitan area, Wisconsin', 'Wyoming', 'Cheyenne metropolitan area, Wyoming', 'Slovenia', 'Kazakhstan', 'Algeria', 'Hungary', 'United States', 'Canada', 'India', 'New Zealand ', 'United Kingdom', 'Turkey', 'Iran', 'Australia', 'Pakistan', 'Italy', 'Brazil', 'South Africa', 'China', 'Thailand ', 'Egypt', 'Bangladesh', 'Israel', 'Cape Verde', 'France', 'Hong Kong', 'Saudi Arabia', 'Puerto Rico', 'Mexico', 'Germany', 'Sweden', 'Qatar', 'South Korea', 'Iceland', 'Philippines', 'Colombia', 'Norway', 'Republic of Indonesia', 'Netherlands', 'Libya', 'Vietnam', 'Finland', 'Japan', 'Spain', 'Switzerland', 'Kenya', 'Denmark', 'Malaysia', 'Sri Lanka', 'Jordan', 'Albania', 'Russia', 'Ireland', 'Peru', 'Portugal', 'Greece', 'Indonesia', 'Poland', 'Venezuela', 'Georgia', 'Nigeria', 'Romania', 'Taiwan', 'United Arab Emirates', 'Morocco', 'Argentina', 'Lebanon', 'Jamaica', 'Belgium', 'Singapore', 'Chile', 'Austria', 'Nepal', 'Bahrain'],
+  schools: ["Carnegie Mellon University","Massachusetts Institute of Technology (MIT)","Stanford University","University of California, Berkeley (UC Berkeley)","University of Illinois at Urbana-Champaign","Cornell University","University of Washington","Princeton University","California Institute of Technology (Caltech)","The University of Texas at Austin","Georgia Institute of Technology","University of Wisconsin, Madison","University of California, Los Angeles","University of Michigan","Columbia University in the City of New York","University of California, San Diego","University of Maryland","Harvard University","University of Waterloo","Harvey Mudd College","University of Oregon","Brown University","Purdue University","Rice University","University of Rochester","Yale University","Duke University","University of Massachusetts Amherst","University of North Carolina at Chapel Hill","Johns Hopkins University","New York University","Pennsylvania State University (Penn State)","University of California, Irvine","University of Minnesota","University of Virginia","Northwestern University","Rutgers University","University of California, Davis","University of California, Santa Barbara","University of Chicago","Dartmouth College","Stony Brook University","Texas A&M University","University of Arizona","University of Colorado at Boulder","Virginia Tech","Washington University in St Louis","Arizona State University","Boston University","North Carolina State University","University of Florida","Indiana University","Rensselaer Polytechnic Institute","University of Pennsylvania","University of Pittsburgh","Michigan State University","University of California, Riverside","University of California, Santa Cruz","Vanderbilt University","Northeastern University","University of Illinois at Chicago","University of North Carolina at Charlotte","Iowa State University","University of Iowa","University of Notre Dame","George Mason University","Oregon State University","Syracuse University","College of William and Mary","Colorado State University","Tufts University","University of Delaware","University of Maryland-Baltimore County","University of Nebraska - Lincoln","University of Southern California","University of Texas at Dallas","Washington State University","Brandeis University","Clemson University","Florida State University","George Washington University","University of Connecticut","University of Kansas","University of New Mexico","Auburn University","Brigham Young University","Drexel University","University of Central Florida","University of Georgia","University of Kentucky","University of Tennessee, Knoxville","Worcester Polytechnic Institute","Pomona College","Amherst College","Williams College","Bowdoin College","Washington and Lee University","Wellesley","Vassar College","Davidson College","Boston College","Colgate University","Wesleyan University","Middlebury College"],
+  showResumeDropdown: function() {
+    var d = new Date();
+    if(!(d.getMonth() < 3 || (d.getMonth() == 3 && d.getDate() < 25) || 
+        d.getMonth() > 4 || (d.getMonth() == 4 && d.getDate() > 15))) return; // skip cuz the top bar banner is already showing
+    $('#upload_resume_dropdown').show(); 
+    PA.call_pj("user.set_last_saw_resume_dropdown", {}, 1);
+    PA.call_pj("generic.event_to_requests", {event: "careers.resume_dropdown.saw"}, 1);
+    P.top_bar.user.config.resume_dropdown_last_seen = new Date();
+  },
+  clickUpdateFromResumeDropdown: function() {
+    $('#upload_resume_dropdown').hide();    
+    PA.call_pj("generic.event_to_requests", {event: "careers.resume_dropdown.update"}, 1);    
+  },
+  dismissResumeDropdown: function() {
+    $('#upload_resume_dropdown').hide();    
+    PA.call_pj("generic.event_to_requests", {event: "careers.resume_dropdown.dismiss"}, 1);    
+  },
+  showJobStatus: function() {
+    var d = new Date();
+    if(!(d.getMonth() < 3 || (d.getMonth() == 3 && d.getDate() < 25) || 
+        d.getMonth() > 4 || (d.getMonth() == 4 && d.getDate() > 15))) return; // skip cuz the top bar banner is already showing
+    var job_yr = d.getUTCMonth() > 6 ? d.getUTCFullYear() + 1 : d.getUTCFullYear();
+    $('#job_year').text(job_yr);
+    $('#company').autoComplete({
+      minChars: 2,
+      source: function(term, suggest){
+          term = term.toLowerCase();
+          var choices = P.top_bar.companies;
+          var matches = [];
+          for (i=0; i<choices.length; i++)
+            if (~choices[i].toLowerCase().indexOf(term) && matches.length < 20)
+              matches.push(choices[i]);
+          suggest(matches);
+      }
+    });
+
+    $('#role').autoComplete({
+        minChars: 2,
+        source: function(term, suggest){
+          term = term.toLowerCase();
+          var choices = P.top_bar.roles;
+          var matches = [];
+          for (i=0; i<choices.length; i++)
+            if (~choices[i].toLowerCase().indexOf(term) && matches.length < 20)
+              matches.push(choices[i]);
+          suggest(matches);
+        }
+    });
+
+    $('#location').autoComplete({
+        minChars: 2,
+        source: function(term, suggest){
+          term = term.toLowerCase();
+          var choices = P.top_bar.places;
+          var matches = [];
+          for (i=0; i<choices.length; i++)
+            if (~choices[i].toLowerCase().indexOf(term) && matches.length < 20)
+              matches.push(choices[i]);
+          suggest(matches);
+        }
+    });
+
+    $('#job_status_dropdown').show(); 
+    var elem = $('#job_status_timer');
+    var counter = 20;
+    var interval = setInterval(function() {
+      if(!P.top_bar.jobStatusClicked) counter--;
+      elem.text(counter)
+      if (counter == 0) {
+        $('#job_status_dropdown').hide();     
+        clearInterval(interval);
+      }
+    }, 1000);
+    PA.call_pj("user.set_last_saw_job_dropdown", {}, 1);
+    PA.call_pj("generic.event_to_requests", {event: "careers.saw_job_dropdown"}, 1);
+    P.top_bar.user.config.job_dropdowns_last_seen = new Date();
+  },
+  
+  updateHeadedTo: function() {
+    var d = new Date();
+    var job_yr = d.getUTCMonth() > 6 ? d.getUTCFullYear() + 1 : d.getUTCFullYear();
+    var type = "intern";
+    if(P.top_bar.profile 
+      && P.top_bar.profile.academics
+      && P.top_bar.profile.academics.grad_year 
+      && P.top_bar.profile.academics.grad_year == job_yr) type = "full";
+    var paramsMap = {
+      type: type,
+      company: $('#company').val(),
+      role: $('#role').val(),
+      location: $('#location').val(),
+      headed_to: true
+    };
+    if(type == "intern") {
+      paramsMap.quarter = "Summer";
+      paramsMap.year = job_yr;
+    } else {
+      paramsMap.start_month = 6;
+      paramsMap.start_year = job_yr;
+    }
+    PA.call_pj("user_profile.add_work_experience", paramsMap, 1, function(data){console.log(data)});
+    $('#job_details_dropdown').hide();    
+    PA.call_pj("generic.event_to_requests", {event: "careers.job_dropdown_update_headed_to"}, 1);
+  },
+  
+  hideJobDetails: function() {
+    $('#job_details_dropdown').hide();
+  },
+  
+  updateJobStatus: function() {
+    var val = $('input:radio[name=job_status]:checked').val();
+    var d = new Date();
+    var job_yr = d.getUTCMonth() > 6 ? d.getUTCFullYear() + 1 : d.getUTCFullYear();
+    var paramsMap = {
+      seeking_full:{status: "Seeking Full Time for " + job_yr.toString(), status_what: "fulltime", status_when: job_yr.toString()},
+      seeking_intern:{status: "Seeking Internship for " + job_yr.toString(), status_what: "internship", status_when: job_yr.toString()},
+      accepted:{status: "Accepted Position for " + job_yr.toString(), status_what: "accepted_position", status_when: job_yr.toString()}
+    };
+    PA.call_pj("user_profile.update_profile", {set: paramsMap[val]}, 1, function(data){console.log(data)})
+    $('#job_status_dropdown').hide();
+    if(val == "accepted") $('#job_details_dropdown').show();
+    PA.call_pj("generic.event_to_requests", {event: "careers.job_dropdown_update_status"}, 1);
+  },
+  
+  confirmWaitlistModal: function() {
+    if(P.top_bar.waitListLoadingInfo.which_modal == "image") {
+      $('#image_first_view').hide();
+      $('#no_image_dismiss').hide();
+      $('#image_second_view').show();
+    } else {
+      $('#no_image_first_view').hide();
+      $('#no_image_dismiss').hide();
+      $('#no_image_second_view').show();      
+    }
+  },
+  
+  hideWaitlistModal: function() {
+    $('.modal_background').hide();
+  },
+  
+  sign_up_waitlist: function() {
+    P.top_bar.user.config.waitlist_response = "yes";
+    var modal_type = P.top_bar.waitListLoadingInfo.which_modal;
+    P.top_bar.confirmWaitlistModal()
+    if(P.top_bar.waitListLoadingInfo.which_modal == "image") {
+      PA.call_pj("user.set_piazza_network_waitlist_response", {response : "yes", type : modal_type}, 1, function(data){})
+    } else {
+      var checkboxes = {activity: $('#activity_checkbox').is(":checked"), classmates: $('#classmates_checkbox').is(":checked")}
+      PA.call_pj("user.set_piazza_network_waitlist_response", {response : "yes", type : modal_type, checkboxes : checkboxes}, 1, function(data){})
+    }
+  },
+  
+  exit_waitlist: function() {
+    P.top_bar.hideWaitlistModal()
+  },
+  
+  reject_waitlist: function() {
+    P.top_bar.user.config.waitlist_response = "no";
+    var modal_type = P.top_bar.waitListLoadingInfo.which_modal;
+    P.top_bar.hideWaitlistModal()
+    PA.call_pj("user.set_piazza_network_waitlist_response", {response : "no", type : modal_type}, 1, function(data){})
+  },
+
+  initEventHandlers: function() {
+    $("#network_button").click(function(event) {
+      if (PA.staticContent) return false;
+      var dropdownMenu = $("#my_class_menu");
+      var menuVisible = dropdownMenu.is(":visible");
+      if (!menuVisible) {
+        P.top_bar.openDropDown($('#my_class_menu'));
+        $(this).closest('.topbar_button').addClass('active');
+      } else {
+        closeDropDown();
+      }
+      event.stopPropagation();
+      return false;
+    });
+    $('.top_bar_logo').click(function(){
+      PEM.fire("cleanDashboard");
+      PEM.fire("showHomescreen");
+    });
+    $('#user_button').click(function(event) {
+      var dropdownMenu = $("#user_dropdown");
+      var menuVisible = dropdownMenu.is(":visible");
+      if (!menuVisible) {
+        P.top_bar.openDropDown($('#user_dropdown'));
+        $(this).addClass('active');
+        $(this).find('.topbar_arrow').addClass('settings_active');
+      }
+      else closeDropDown();
+      event.stopPropagation();
+      return false;
+    });
+    $("html").click(function() {
+      if (typeof(closeDropDown) != "undefined")
+        closeDropDown();
+    });
+    $("#log_out").click(function() {
+      PA.call("user.logout", {}, null, function() {
+        window.location = '/';
+      });
+    });
+    $('#user_dropdown_list > li').click(function() {
+      P.top_bar.executeDropdownAction($(this).attr("action"));
+      return true;
+    });
+    $(".class_report").click(function() {
+      window.open("/stats/report/" + P.top_bar.network.id, "_blank");
+    });
+    $('.topbar_icons.stats').click(function() {
+      if (P.top_bar.isDashboard) {
+        PEM.fire("showClassStats");
+        $('.top_bar_statistics').addClass('active');
+        $('.top_bar_qa').removeClass('active');
+      } else {
+        window.location = "/class/" + P.top_bar.network.id + "?show_stats=1";
+      }
+    });
+    $(".top_bar_manage").click(function() {
+      P.top_bar.gotoConfigClass();
+    });
+
+    $(".top_bar_qa, #classes_brand").click(function() {
+      P.top_bar.loadQaSite();
+    });
+    
+    // $(".top_bar_careers_homescreen").click(function() {
+    //   if ($(this).hasClass("view_all_events"))
+    //     window.location = "/careers/dashboard?eid=all";
+    //   else if ($(this).hasClass("view_all_messages"))
+    //     window.location = "/careers/dashboard?mid=all";
+    //   else
+    //     window.location = "/careers/dashboard";
+    //   return false;
+    // });
+    $('#event_notifications_button').click(function(){
+      closeDropDown();
+      $('#topbar_career_events_notifications_popover').show();
+      P.top_bar.resetEventNotifications();
+      PA.call_pj("user.set_last_saw_careers", {}, 1);
+
+      return false;
+    });
+    // $('#message_notifications_button').click(function(){
+    //   closeDropDown();
+    //   $('#topbar_career_message_notifications_popover').show();
+    //   PA.call_pj("generic.event_to_requests", {event: "careers.messages_icon"},1);
+    //   return false;
+    // });
+    $("#careers_button_signed").click(function() {
+      window.location = "/careers/student";
+    });
+    $("#careers_button").click(function() {
+      if (P.top_bar.isDashboard) {
+        PA.call_pj("user.set", {stat:"careers.ybtn", val:new Date()}, 1);
+        PEM.fire("cleanDashboard");
+        PEM.fire("showHomescreen");
+      } else {
+        window.location = "/class";
+      }
+    });
+
+    $('#careers_button .icon-remove-sign').click(function(){
+      if (!P.top_bar.user.config.careers) P.top_bar.user.config.careers = {};
+      P.homescreen.user.config.careers.stop = new Date();
+      PA.call_pj("user.set", {stat:"careers.stop", val:P.homescreen.user.config.careers.stop}, 1);
+      $('#careers_button').hide();
+    });
+    $('.top_bar_course_page').click(function() {
+      P.top_bar.gotoCoursePage();
+    });
+    $('.top_bar_button.login').click(function() {
+      openSlidingPanel($('#LoginPanel'));
+      $('#email_field').focus();
+      return false;
+    });
+    $('.top_bar_button.enroll').click(function() {
+      if (typeof(FORCE_TERM) != 'undefined') {
+        var term = FORCE_TERM.toLowerCase().replace(/\s+/g, "") || "other";
+        window.location = "/" + FORCE_EXT + "/" + term + "/" + FORCE_SN;
+      }
+      return false;
+    });
+    $('#create_new_class').click(function() {
+      window.location = "/instructors/" + P.top_bar.network.school_ext;
+    });
+    $('#clone_class').click(function() {
+      var term = P.top_bar.network.term.toLowerCase().replace(/\s+/g, "") || "other";
+      window.location = "/clone-class/" + term + "/" + P.top_bar.network.short_number;
+    });
+    $('#add_another_class').click(function() {
+      window.location = "/signup/" + P.top_bar.schoolExt;
+    });
+    $('#inactive_network_toggle').click(function() {
+      P.top_bar.showingInactive = !P.top_bar.showingInactive;
+      if (P.top_bar.showingInactive) {
+        $('.inactiveNetwork').show();
+        $('#inactive_network_toggle a').html("Hide inactive classes");
+      } else {
+        $('.inactiveNetwork').hide();
+        $('#inactive_network_toggle a').html("Show inactive classes");
+      }
+      return false;
+    });
+    $("#stats_button").click(function() {
+      if (typeof(INTERNAL_ID) != 'undefined')
+        window.location = "/company/" + INTERNAL_ID + "/stats";
+    });
+    $("#search_button").click(function() {
+      if (typeof(COMPANY_STATS) != 'undefined' && COMPANY_STATS) {
+        window.location = "/company/" + INTERNAL_ID + "/search";
+        return;
+      }
+      $(this).addClass("active");
+      P.modules.loadModule("careers_company_search", {}, function() {
+        PEM.fire("showSearch");
+      }, null);
+      $(".top_bar_tab").removeClass("active");
+      $(this).addClass("active");
+      PA.call_pj("generic.event_to_requests", {event: "careers.search_tab"},1);
+    });
+    $("#interacted_button").click(function() {
+      if (typeof(COMPANY_STATS) != 'undefined' && COMPANY_STATS) {
+        window.location = "/company/" + INTERNAL_ID + "/interacted";
+        return;
+      }
+      $(this).addClass("active");
+
+      P.modules.loadModule("careers_company_students_interacted", {}, function() {
+        PEM.fire("showInteracted");
+      }, null);
+      $(".top_bar_tab").removeClass("active");
+      $(this).addClass("active");
+      PA.call_pj("generic.event_to_requests", {event: "careers.interacted_tab"},1);
+    });
+    $("#discover_button").click(function() {
+      if (typeof(COMPANY_STATS) != 'undefined' && COMPANY_STATS) {
+        window.location = "/company/" + INTERNAL_ID;
+        return;
+      }
+      $(".top_bar_tab").removeClass("active");
+      $(this).addClass("active");
+      P.modules.loadModule("careers_company_discover", {}, function() {
+        PEM.fire("showDiscover");
+      }, null);
+      PA.call_pj("generic.event_to_requests", {event: "careers.discover_tab"},1);
+    });
+    $("#company_profile_button").click(function() {
+      P.modules.loadModule("careers_company_profile", {}, function() {
+        PEM.fire("showCompanyProfile", LOAD_COMPANY);
+      }, null);
+      $(".top_bar_tab").removeClass("active");
+      $(this).addClass("active");
+      PA.call_pj("generic.event_to_requests", {event: "careers.company_profile_tab"},1);
+    });
+    $('#signup_button').click(function(){
+      window.location = "/instructors/school-search";
+    });
+    $('#piazza_com_button').click(function(){
+      window.location = "/";
+    });
+    $("#company_log_out").click(function() {
+      PA.call("careers_company.logout", {}, null, function() {
+        window.location = '/company/login';
+      }, function(err){console.log(err)});
+    })
+    $('.top_bar_classes').click(function() {
+      window.location = '/class';
+      return false;
+    });
+    $('.log_click').click(function(){
+      var id = $(this).attr("id");
+      if (id) {
+        id = "company_profile." + id;
+        PA.call_pj("generic.page_event", {type:id}, 1, function(){});
+      }
+    });
+    $("#close_topbar_careers_popover").click(function(){
+      $('#topbar_careers_popover').hide();
+      if (PA.user) {
+        PA.markSeenUnseen("career_tab_pop");
+        PA.markSeenUnseen("career_tab_pop_2");
+      }
+    });
+    $('#close_topbar_careers_popover_optout').click(function(){
+      $('#topbar_careers_popover').hide();
+      if (PA.user) {
+        PA.call_pj("user.update", {email_prefs:{careers:{no_careers:true}}}, null, function(data){
+          window.location = "/class";
+        });
+      }
+    });
+    $("#close_topbar_career_events_popover").click(function(){
+      $('#topbar_career_events_popover').hide();
+      if (PA.user)
+        PA.markSeenUnseen("career_tab_pop_2");
+    });
+    if (typeof(COMPANY_STATS) != 'undefined' && COMPANY_STATS) {
+      $('.top_bar_tab').removeClass('active');
+      $('#stats_button').addClass('active');
+    }
+    if (typeof(COMPANY_SEARCH) != 'undefined')
+      $('#search_button').click();
+    if (typeof(COMPANY_INTERACTED) != 'undefined')
+      $('#interacted_button').click();
+    P.top_bar.reloadMessagesCount = 0;
+    P.top_bar.reloadEventsCount = 0;
+    $("#messages_icon").click(function() {
+      P.top_bar.reloadMessagesCount += 1;
+      $("#messages_icon").attr('href', "/careers/dashboard#/messages/reload_" + P.top_bar.reloadMessagesCount);
+    });
+    $('.topbar_events_icon').unbind().click(function(){
+      $(".event_count").hide();
+      //window.location.href = "/careers/dashboard#/events";
+      //return false;
+    });
+  },
+  gotoConfigClass: function(section) {
+    if (P.top_bar.network.type == "group")
+      window.location = "/configure-group/" + P.top_bar.nid;
+    else {
+      var term = P.top_bar.network.term.toLowerCase().replace(/\s+/g, "") || "other";
+      var shortNumber = P.top_bar.network.short_number;
+      if (section)
+        window.location = "/configure-classes/" + term + "/" + shortNumber + "#" + section;
+      else
+        window.location = "/configure-classes/" + term + "/" + shortNumber;
+    }
+  },
+  gotoCoursePage: function(subpage) {
+    subpage = subpage || "home";
+    var net = P.top_bar.network;
+    if (!net) return;
+    var term = net.term.toLowerCase().replace(/\s+/g, "") || "other";
+    var shortNumber = net.short_number;
+    window.location = "/" + net.school_ext + "/" + term + "/" + shortNumber + '/' + subpage;
+  },
+  initTipsies: function() {
+    $('.show-tipsy').tipsy({gravity: 'n'});
+  },
+  refreshOnlineUsers: function(nid) {
+    if (nid == P.top_bar.network.id) {
+      var params = {nid: nid,uid: P.top_bar.user.id};
+      if (P.top_bar.onWhatPage) params.page = P.top_bar.onWhatPage; // make this log in vertica
+      PA.call_pj("network.get_online_users", params, 1, function(data) {
+        if (nid == P.top_bar.network.id) {
+          PEM.fire("online_users", data);
+          if (P.top_bar.getOnlineUsers) {
+            clearTimeout(P.top_bar.getOnlineUsers);
+          }
+          P.top_bar.getOnlineUsers = setTimeout(function() { P.top_bar.refreshOnlineUsers(P.top_bar.network.id); }, 1000 * 180); // 3 minute timeout
+        }
+      }, function(err) {
+        if (err === "User session changed") {
+          PEM.fire("user_logout");
+        }
+      });
+
+    }
+  },
+  careersPing: function() {
+    if (typeof(COMPANY_USER_ID) != 'undefined') {
+      PA.call_pj("careers_company.ping", {}, 1, function(data) {
+        P.top_bar.getOnlineUsers = setTimeout(P.top_bar.careersPing, 1000 * 180); // 3 minute timeout
+      });
+    }
+  },
+  ensureTooltips: function() {
+    var showTips = true;
+    if (P.top_bar.user && P.top_bar.user.config && P.top_bar.user.config.no_tips) showTips = false;
+    if (!showTips && !P.top_bar.showTips) {// no need to spend extra cycles
+      $('[notutorial]').unbind('mouseenter mouseleave')
+      $('[notutorialw]').unbind('mouseenter mouseleave')
+      $('[notutorial]').tipsy({gravity: 'n', html: true, title:"notutorial"});
+      $('[notutorialw]').tipsy({gravity: 'w', html: true, title:"notutorialw"});
+      return;
+    }
+    // either show, or hide tooltips
+    $('[tutorial]').unbind('mouseenter mouseleave')
+    $('[tutorialw]').unbind('mouseenter mouseleave')
+    $('[notutorial]').unbind('mouseenter mouseleave')
+    $('[notutorialw]').unbind('mouseenter mouseleave')
+    $('[notutorial]').tipsy({gravity: 'n', html: true, title:"notutorial"});
+    $('[notutorialw]').tipsy({gravity: 'w', html: true, title:"notutorialw"});
+    if (showTips) {
+      $('.icons .sr_icon').attr("tutorial", "Question has a Students' Answer");
+      $('.instructor_endorsed_sr .icons .sr_icon').attr("tutorial", "Question has an instructor-endorsed Students' Answer");
+      $('.icons .ir_icon').attr("tutorial", "Question has an Instructors' Answer");
+      $('.icons .note').attr("tutorial", "This is a note");
+      $('.icons .poll_icon').attr("tutorial", "This is a poll");
+
+      $('[tutorialw]').tipsy({gravity: 'w', html: true, title:"tutorialw"});
+      $('[tutorial]').tipsy({gravity: 'n', html: true, title:"tutorial"});
+    }
+    P.top_bar.showTips = showTips;
+  },
+  executeDropdownAction: function(action) {
+    if (action == "settings") {
+      window.location = '/account_settings';
+
+    } else if (action == "support") {
+      window.open('https://piazza.desk.com/', '_blank');
+
+    } else if (action == "features") {
+      window.open('/features', '_blank');
+
+    } else if (action == "tooltips") {
+      if (P.top_bar.user.config.no_tips) {
+        // TURNING TUTORIAL ON
+        P.top_bar.user.config.no_tips = false;
+        PA.call_pj("user.unset", {stat:"no_tips"}, 1);
+        $('#tooltip_link').html("Turn off Tooltips");
+        P.top_bar.ensureTooltips();
+      } else {
+        // TURNING TUTORIAL OFF
+        P.top_bar.user.config.no_tips = 1;
+        PA.call_pj("user.set", {stat:"no_tips", val:1}, 1);
+        $('#tooltip_link').html("Turn on Tooltips");
+        P.top_bar.ensureTooltips();
+      }
+
+    } else if (action == "contact") {
+      window.open('/contactus.html?nid=' + P.top_bar.network.id, '_blank');
+
+    } else if (action == "bug") {
+      PTM.getModuleTemplate("top_bar", "bug_report", P.top_bar.showBugReport);
+
+    } else if (action == "homepage") {
+      window.location = '/';
+    } else if (action == "careers") {
+      if (P.top_bar.isDashboard) {
+        PEM.fire("cleanDashboard");
+        PEM.fire("showHomescreen");
+      } else {
+        window.location = "/class/" + P.top_bar.nid;
+      }
+    }
+
+    return false;
+  },
+  showBugReportExternal: function() {
+    PTM.getModuleTemplate("top_bar", "bug_report", P.top_bar.showBugReport);
+  },
+  showBugReport: function(template) {
+    if ($('#report_bug_dialog') && $('#report_bug_dialog').length > 0) {
+      $('#report_bug_dialog').jqmShow();
+    } else {
+      $("body").append(template({}));
+      $('#report_bug_dialog').jqm();
+      $("#submit_bug").click(function() {
+        PA.call("user.bug_report", {details:$('#bug_details').val(), nid: P.top_bar.network.id},
+          $('#report_bug_dialog'), function() {
+              $('#report_bug_dialog').jqmHide();
+              $('#bug_details').val("");
+              alert("Thanks for your feedback!");
+        });
+        return false;
+      });
+      $("#close_bug_report").click(function() {
+        $('#report_bug_dialog').jqmHide();
+        return false;
+      });
+      $('#report_bug_dialog').jqmShow();
+    }
+  },
+  fileBugReport: function() {
+
+  },
+  setUserAndPopulateNetworks: function(user) {
+    $('.my_pic').html(PA.getUserPic(user.id));
+    $('.my_pic_noclick').html(PA.getUserPic(user.id, true));
+
+    if (user.total_profiles) user.total_profiles += 2000;
+    // populate network dropdown
+    P.top_bar.globalNotifications = 0;
+    var nid = user.last_network;
+    if (typeof(FORCE_NID) != "undefined")
+      nid = FORCE_NID;
+    // make sure we have this network
+    var have = false;
+    for (var i = 0; i < user.networks.length; i++)
+      if (user.networks[i].id == nid) have = true;
+    if (!have && typeof(FORCE_NID_NOTAUTO) == 'undefined') nid = false;
+    if (!have && typeof(FORCE_NID_NOTAUTO) != 'undefined') {
+      $('.logged_out').show();
+      $('.logged_in').hide();
+      $('.top_bar_button.login').hide();
+    }
+    if (!nid && user.networks.length > 0)
+      nid = user.networks[0].id;
+    // see if URL has old-style link
+    var hash = window.location.hash;
+    if (hash) {
+      // form: #summer2013/math021wd/76
+      var entries = hash.split(/[#\/]/);
+      if (entries.length > 2) {
+        var term = entries[1];
+        var courseNr = entries[2];
+        var cid = "";
+        if (entries.length > 3) cid = entries[3];
+        // find class in question
+        for (var i = 0; i < user.networks.length; i++) {
+          var net = user.networks[i];
+          var netterm = net.term.toLowerCase().replace(/\s+/g, "") || "other";
+          if (netterm == term && courseNr == net.short_number) {
+            nid = net.id;
+            if (cid) CID = cid;
+          }
+        }
+      }
+    }
+    var haveInactiveClasses = false;
+    var haveActiveClasses = false;
+    var myClasses = $("#my_classes");
+    if (user.new_questions) {
+      user.new_questions[nid] = 0;
+    }
+    if (!user.config.email_prefs.careers)
+      user.config.email_prefs.careers = {};
+    // add story class if it has at least 2 posts
+    if (user.total_careers_stories && user.total_careers_stories > 1 && !user.config.email_prefs.careers.no_careers)
+      user.networks.unshift({id:"stories_" + user.id, name:"Piazza Stories", course_number:"Piazza Stories", anonymity:"no", term:"ongoing", profs:[], user_count:0});
+    P.top_bar.schoolExt = "";
+    P.top_bar.user.hasCS = false;
+    P.top_bar.user.hasUS = false;
+    if (P.top_bar.user.config.cs_student)
+      P.top_bar.user.hasCS = true;
+    if (!P.top_bar.user.isPublicFaq) {
+      jQuery.each(user.networks, function(idx, net) {
+        // Construct each item in the list and add to the dropdown
+        if (net.is_cs) P.top_bar.user.hasCS = true;
+        var theHTML = "";
+        if (net.school_ext) P.top_bar.schoolExt = net.school_ext;
+        if (net.school_emails && (net.school_emails.length > 3)) {
+          if (net.school_emails.substr(net.school_emails.length - 4, 4) == ".edu") P.top_bar.user.hasUS = true;
+          if (net.school_emails.substr(net.school_emails.length - 3, 3) == ".ca") P.top_bar.user.hasUS = true;
+        }
+        var nameHTML = '<span class="course_number">' + net.course_number + '</span>' + net.name + ' <span class="term">[' + net.term + ']</span>';
+        if (net.type == "group") {
+          var creatorName = net.creator_name;
+          if (!creatorName)
+            creatorName = "";
+          nameHTML = '<span class="course_number">' + net.name + '</span> ' + creatorName;
+        }
+        if (net.status !== "inactive") {
+          haveActiveClasses = true;
+          theHTML += '<li data-pats="classes_dropdown_item" class="clearFix classDropdownItem sortable networkDropdown" id="network_' + net.id + '" onclick="P.top_bar.changeNetwork(\'' + net.id + '\',null,true)">';
+          theHTML += '<div data-pats="label" class="main ">' + nameHTML + '</div>';
+        } else {
+          haveInactiveClasses = true;
+          theHTML += '<li data-pats="classes_dropdown_item" class="clearFix classDropdownItem sortable networkDropdown inactiveNetwork" style="display:none;" id="network_' + net.id + '" onclick="P.top_bar.changeNetwork(\'' + net.id + '\', null, true)">';
+          theHTML += '<div data-pats="label" class="main ">' + "(inactive) " + nameHTML + '</div>';
+        }
+
+        if (user.new_questions[net.id]) {
+          theHTML += '<div class="global_notifications my_classes" id="dropdown_notifications_' + net.id + '">' + user.new_questions[net.id] + '</div>';
+        }
+        theHTML += '</li>';
+        myClasses.append(theHTML);
+        // Updated the global notification count on the network dropdown bar
+        if (user.new_questions && user.new_questions[net.id] > 0 && net.status !== 'inactive') {
+          P.top_bar.globalNotifications += user.new_questions[net.id];
+        }
+      });
+
+      $('#my_classes').b_sortable().bind('sortupdate', function() {
+        P.top_bar.updateClassListOrder();
+      });
+
+      if (haveInactiveClasses && haveActiveClasses) {
+        $("#inactive_network_toggle").show();
+      } else {
+        $("#inactive_network_toggle").hide();
+        if (!haveActiveClasses)
+          $('.inactiveNetwork').show();
+      }
+    } else {
+      // hide drop-down, and disable it
+      $('#network_button .topbar_arrow').hide();
+      $('#network_button').unbind();
+    }
+    P.top_bar.user.showCareers = true;
+    if (P.top_bar.user.config.email_prefs.careers && P.top_bar.user.config.email_prefs.careers.no_careers)
+      P.top_bar.user.showCareers = false;
+    //if (!P.top_bar.user.config.logins || P.top_bar.user.config.logins < 10)
+    //  P.top_bar.user.showCareers = false;
+    $('#global_wishlist_notifications').hide();
+
+    P.top_bar.changeNetwork(nid,false);
+    P.top_bar.displayGlobalNotifications();
+  },
+  updateClassListOrder: function() {
+    var arr = $('#my_classes .classDropdownItem');
+    var list = {};
+    for (var i = 0; i < arr.length; i++)
+      list[$(arr[i]).attr("id").replace("network_", "")] = i;
+    var req = {
+      stat: 'class_list',
+      val:  list
+    };
+    PA.call_pj("user.set", req, $('#my_classes'), function(data) {
+      // sort array on the frontend
+      P.top_bar.user.networks.sort(function(a,b) {
+        return list[a.id] - list[b.id];
+      });
+    }, function(err) {
+      alert(err);
+    });
+  },
+  displayGlobalNotifications: function() {
+    if (P.top_bar.globalNotifications > 0) {
+      $("#global_notifications_indicator").html(P.top_bar.globalNotifications);
+      $("#global_notifications_indicator_wrapper").show();
+      $("#network_button").addClass("notification_present");
+    } else {
+      $("#global_notifications_indicator_wrapper").hide();
+      $("#network_button").removeClass("notification_present");
+    }
+  },
+  changeNetwork: function(id, showNewPost, fromClassList) {
+    if (P.top_bar.nid) {
+      PEM.fire("verifyAnyCancel", function() {
+        P.top_bar.doChangeNetwork(id, showNewPost, fromClassList);
+      });
+    } else {
+      P.top_bar.doChangeNetwork(id, showNewPost, fromClassList);
+    }
+    return false;
+  },
+  nameClick: function() {
+    if (P.top_bar.user.isInst && !P.top_bar.user.isTA)
+      return false;
+    return P.top_bar.user.showCareers;
+  },
+  hideHeadedToBanner: function() {
+    $("#headed_to_banner").hide();
+    $("#page_main").removeClass('has_green_message_bar_summer_info');
+    PA.markSeenUnseen("headed_to_banner_" + (1900 + (new Date()).getYear()));
+  },
+  maybeShowHeadedToBanner: function() {
+    if(P.top_bar.hasShownHeadedToBanner) return;
+    P.top_bar.hasShownHeadedToBanner = true;
+    // check: correct date range
+    // check: hasn't updated profile since apr 1
+    // check: hasn't xed out of this thing this year 
+    // check: is a student or a ta in this class 
+    // has not opted out
+    var d = new Date();
+    if( d.getMonth() < 3 || (d.getMonth() == 3 && d.getDate() < 25) || 
+        d.getMonth() > 4 || (d.getMonth() == 4 && d.getDate() > 15) ||
+        PA.isSeenUser("headed_to_banner_" + (1900 + (new Date()).getYear())) || 
+        (P.top_bar.user.isInst && !P.top_bar.user.isTA) || 
+        !P.top_bar.user.showCareers ||
+        new Date(P.top_bar.last_update) > new Date(d.getYear(), 3, 1)) return;
+    $("#headed_to_banner").show();
+    $("#page_main").addClass('has_green_message_bar_summer_info');
+    $('#company_banner').autoComplete({
+      minChars: 2,
+      source: function(term, suggest){
+          term = term.toLowerCase();
+          var choices = P.top_bar.companies;
+          var matches = [];
+          for (i=0; i<choices.length; i++)
+            if (~choices[i].toLowerCase().indexOf(term) && matches.length < 20)
+              matches.push(choices[i]);
+          suggest(matches);
+      }
+    });
+
+    $('#role_banner').autoComplete({
+        minChars: 2,
+        source: function(term, suggest){
+          term = term.toLowerCase();
+          var choices = P.top_bar.roles;
+          var matches = [];
+          for (i=0; i<choices.length; i++)
+            if (~choices[i].toLowerCase().indexOf(term) && matches.length < 20)
+              matches.push(choices[i]);
+          suggest(matches);
+        }
+    });
+
+    $('#location_banner').autoComplete({
+        minChars: 2,
+        source: function(term, suggest){
+          term = term.toLowerCase();
+          var choices = P.top_bar.places;
+          var matches = [];
+          for (i=0; i<choices.length; i++)
+            if (~choices[i].toLowerCase().indexOf(term) && matches.length < 20)
+              matches.push(choices[i]);
+          suggest(matches);
+        }
+    });
+    PA.call_pj("generic.event_to_requests", {event: "careers.headed_to_banner_seen"}, 1);
+  },
+  isValidEmail: function(email) {
+    var reg = /^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+    return email.match(reg);
+  },
+  validateHeadedToBannerFields: function() {
+    var errors = {any: false, company: false, email: false};
+    if($('#company_banner').val().length === 0) {
+      errors.any = true;
+      errors.company = true;
+    }
+    if($('#summer_email_banner').val().length > 0 && !P.top_bar.isValidEmail($('#summer_email_banner').val())) {
+      errors.any = true;
+      errors.email = true;
+    }
+    if(errors.company) $("#company_banner").addClass("border-hard-lite-red");
+    else $("#company_banner").removeClass("border-hard-lite-red");
+    if(errors.email) $("#summer_email_banner").addClass("border-hard-lite-red");
+    else $("#summer_email_banner").removeClass("border-hard-lite-red");
+    return errors;
+  },
+  updateHeadedToBanner: function() {
+    var errors = P.top_bar.validateHeadedToBannerFields();
+    if(errors.any) return;
+    var d = new Date();
+    var job_yr = d.getUTCMonth() > 6 ? d.getUTCFullYear() + 1 : d.getUTCFullYear();
+    var type = "intern";
+    if(P.top_bar.profile && 
+      P.top_bar.profile.academics && 
+      P.top_bar.profile.academics.grad_year && 
+      P.top_bar.profile.academics.grad_year == job_yr) type = "full";
+    var paramsMap = {
+      type: type,
+      company: $('#company_banner').val(),
+      role: $('#role_banner').val(),
+      city: $('#location_banner').val(),
+      headed_to: true
+    };
+    if(type == "intern") {
+      paramsMap.quarter = "Summer";
+      paramsMap.year = job_yr;
+    } else {
+      paramsMap.start_month = 6;
+      paramsMap.start_year = job_yr;
+    }
+    PA.call_pj("user_profile.add_work_experience", paramsMap, 1, function(data){console.log(data);});
+    $('#job_details_dropdown').hide();    
+    $('#headed_to_company').text(paramsMap.company);
+    PA.call_pj("generic.event_to_requests", {event: "careers.banner_update_headed_to"}, 1);
+    P.top_bar.hideHeadedToBanner();
+  },
+  doChangeNetwork: function(id, showNewPost, fromClassList) {
+    if (id === P.top_bar.nid && typeof IS_NEW_CAREERS == 'undefined') {
+      return;
+    }
+    // P.top_bar.maybeShowWaitListModal();
+    var user = P.top_bar.user;
+
+    for (var i = 0; i < user.networks.length; i++) {
+      if (user.networks[i].id == id) {
+        P.top_bar.nid = id;
+        var net = user.networks[i];
+        net.isGroup = (net.type == "group");
+        $('#dropdown_notifications_' + net.id).hide(); // remove red badge
+        P.top_bar.globalNotifications -= P.top_bar.user.new_questions[net.id];
+        P.top_bar.user.new_questions[net.id] = 0;
+        P.top_bar.displayGlobalNotifications();
+        P.top_bar.network = net;
+        P.top_bar.user.isInst = P.top_bar.user.can_admin[id] || 0;
+        P.top_bar.user.isTA = false;
+        if (P.top_bar.user.can_admin[id] && P.top_bar.user.can_admin[id] < 10)
+          P.top_bar.user.isTA = true;
+        // populate section names
+        net.sectionNames = {};
+        PA.profs = {};
+        for (var z = 0; z < net.profs.length; z++) {
+          PA.users[net.profs[z].id] = net.profs[z];
+          PA.profs[net.profs[z].id] = 1;
+        }
+        if (net.config && net.config.class_sections && net.config.class_sections.sections.length > 0) {
+          //net.subGroups = net.config.class_sections.sections;
+          net.subGroups = [];
+          net.showAllGroups = false;
+          if (P.top_bar.user.config.feed_groups) {
+            for (var j = 0; j < net.config.class_sections.sections.length; j++) {
+              var sect = net.config.class_sections.sections[j];
+              var sectGroup = sect.toLowerCase() + "_" + net.id;
+              net.sectionNames[sectGroup] = sect;
+              if (P.top_bar.user.config.feed_groups.exist(sectGroup)) {
+                net.subGroups.push(sect);
+              }
+            }
+            if (net.subGroups.length > 1) {
+              net.showAllGroups = true;
+            }
+          }
+        }
+        if (net.private_posts == "no" && !P.top_bar.user.isInst) net.noPrivatePosts = true;
+        if (net.type == "no-verify") net.isLargeClass = true;
+
+        P.modules.setNetwork(P.top_bar.network);
+        P.top_bar.refreshOnlineUsers(P.top_bar.network.id); // 3 minute timeout
+        if (net.type != "group") {
+          $(".current_class_name").html(P.top_bar.network.course_number);
+        } else {
+          $(".current_class_name").html(P.top_bar.network.name);
+        }
+        $(".current_class_name").css("min-width", "90px");// safari trick, to force recalculation of width
+        if (typeof(COMPANY_PROFILE) != 'undefined' || typeof(LOAD_MY_PROFILE) != 'undefined') {
+          $('.top_bar_qa').hide();
+          $('.top_bar_classes').show();
+          $('.top_bar_new_careers').show();
+          $('.top_bar_new_careers').addClass("active");
+          return;
+        }
+        $('.top_bar_manage').hide();
+        $('.top_bar_course_page').hide();
+        $('.class_report').hide();
+        $('.topbar_icons.stats').hide();
+        $('.top_bar_manage').html("<a href='#'>Manage Group</a>");
+        $('.top_bar_qa').html("<a href='#'>Home</a>");
+        $(".student_only").hide();
+        $('#careers_button').hide();
+        $('#careers_button_signed').hide();
+        $('#piazza_careers_link').hide();
+        $('.top_bar_careers_homescreen').hide();
+        $('.account_name_container').addClass('opted_out_name_link');
+        if (!P.top_bar.user.isPublic)
+          P.top_bar.showCareersStuff();
+        if (P.top_bar.user.isInst) {
+          $(".instructor_only").show();
+          $("#topbar_careers_popover").hide();
+          $("#topbar_career_events_popover").hide();
+        } else {
+          $(".instructor_only").hide();
+          if (!P.top_bar.user.is_public) {
+            if (P.top_bar.schoolExt && P.top_bar.user.networks[0].type != "public" ) {
+              $(".student_only").show();
+              if (P.top_bar.isDashboard && P.top_bar.user.config.logins > 10) {
+                if (!P.top_bar.user.config.careers || !P.top_bar.user.config.careers.stop)
+                  $('#careers_button').show();
+              }
+            }
+            if (P.top_bar.user.config.careers && P.top_bar.user.config.careers.signed) {
+              $('#careers_button_signed').show();
+              $('#careers_button').hide();
+            }
+          }
+        }
+        // only show if user has permission
+        var role = "member";
+        if (P.top_bar.user.config.roles && P.top_bar.user.config.roles[id]) {
+          role = P.top_bar.user.config.roles[id];
+        }
+        if (role == "admin" && net.type != "group")
+          role = "instructor";
+        P.top_bar.user.network_permissions = {};
+        if (net.config && net.config.roles && net.config.roles[role]) {
+          P.top_bar.user.network_permissions = net.config.roles[role];
+        }
+        var canManageClass = PA.hasPermission("manage_group_info");
+        P.top_bar.user.role = role;
+        if (net.type != "group") {
+          net.urlType = "/class";
+          $('.top_bar_manage').html("<a data-pats='manage_class' href='#'>Manage Class</a>");
+          $('.top_bar_qa').html("<a href='#'>Q &amp; A</a>");
+          if (net.id != "stories_" + P.top_bar.user.id) {
+            $('.top_bar_course_page').show();
+            if (net.total_content_stud > 20)
+              $('.class_report').show();
+            if (!P.top_bar.user.isPublic)
+              $('.topbar_icons.stats').show();
+          } else {
+            canManageClass = false;
+            P.top_bar.careersNotifications = {};
+            P.top_bar.displayCareersNotifications(true);
+          }
+          if (!P.top_bar.user.isPublic && (!P.top_bar.user.config || !P.top_bar.user.config.logins || P.top_bar.user.config.logins < 5) && !PA.isSeenUser('tutorial_dashboard')) {
+            P.modules.loadModule("onboarding_overlay", {}, function() {
+              PEM.fire("show_onboarding_overlay", P.top_bar.user.isInst);
+            }, null);
+          }
+        } else {
+          net.urlType = "/group";
+        }
+        if (P.top_bar.changeUrl && window.history && window.history.pushState) {
+          try {
+            window.history.pushState({cid:false, id:false}, "Piazza", P.top_bar.network.urlType + "/" + P.top_bar.network.id );
+          } catch (err) {}
+        }
+        if (canManageClass)
+          $('.top_bar_manage').show();
+        PEM.fire("network", P.top_bar.network);
+        $('#question_feed_questions').scrollTop(0);
+        var showHomescreen = true;
+        if (typeof(COMPANY_PROFILE) != 'undefined' || typeof(COMPANY_STATS) != 'undefined' || typeof(CAREERS_DASHBOARD) != 'undefined') {
+          showHomescreen = false;
+        } else
+          PEM.fire("cleanDashboard");
+        if (showNewPost || (typeof(SHOW_POST) != 'undefined' && SHOW_POST)) {
+          SHOW_POST = false;
+          setTimeout(function(){PEM.fire("showNewPost");}, 100);
+          showHomescreen = false;
+        }
+        if ((typeof(SHOW_STATS) != 'undefined' && SHOW_STATS)) {
+          setTimeout(function(){
+            PEM.fire("showClassStats");
+            SHOW_STATS = false;
+            $('.top_bar_statistics').addClass('active');
+            $('.top_bar_qa').removeClass('active');
+          }, 100);
+          showHomescreen = false;
+        }
+        if ((typeof(SHOW_UP) != 'undefined' && SHOW_UP)) {
+          SHOW_UP = false;
+          PEM.fire("showMyProfile");
+          showHomescreen = false;
+        }
+        if (showHomescreen)
+          PEM.fire("showHomescreen");
+      }
+    }
+    if (P.top_bar.nid != id && typeof(FORCE_CN) != 'undefined') {
+      $(".current_class_name").html(FORCE_CN);
+    }
+    if (P.top_bar.user.isPublic) {
+      $('.top_bar_course_page').hide();
+      $('.top_bar_manage').hide();
+      if (!P.top_bar.user.isPublicFaq) {
+        $('#signup_button').show();
+        $('#piazza_com_button').show();
+      }
+    }
+    if (typeof IS_NEW_CAREERS !== 'undefined' && fromClassList) {
+      P.top_bar.loadQaSite();
+    }
+    P.top_bar.maybeShowJobLink();
+  },
+  initWaitlistModalWithImage: function(){
+    // load image first
+    $("#hidden_waitlist_img").load(function(){
+
+      // get data from petty      
+      var numberWithCommas = function(x) {
+        return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+      };
+      // PA.call_pj("user.get_waitlist_modal_data", {}, $(".modal_background"), function(data){
+      
+      // set data from petty in modal
+      $(".image_name").text(P.top_bar.user.name);
+      // $(".data_points").text(numberWithCommas(data.data_points));
+      // $(".qa_classmates").text(numberWithCommas(data.classmates));
+      
+      // show modal
+      P.top_bar.showWaitlistModal();
+      
+      // update loading state:
+      P.top_bar.waitListLoadingInfo.loading = false;
+      P.top_bar.waitListLoadingInfo.loaded = true;
+      });
+    // });
+  },
+  str_hash: function(str) {
+    var hash = 0, i, chr, len;
+    if (str.length === 0) return hash;
+    for (i = 0, len = str.length; i < len; i++) {
+      chr   = str.charCodeAt(i);
+      hash  = ((hash << 5) - hash) + chr;
+      hash |= 0; // Convert to 32bit integer
+    }
+    return hash;
+  },
+  maybeShowWaitListModal: function() {
+    //  is a student or a ta and has not seen it before
+    if ((!P.top_bar.user.isInst || P.top_bar.user.isTA)
+          && !PA.isProfessor()
+          && P.top_bar.user.config 
+          && (!P.top_bar.user.config.email_prefs.careers || P.top_bar.user.config.email_prefs.careers.no_careers == false)
+          && P.top_bar.user.config.waitlist_response == null 
+          && P.top_bar.user.config.logins >= 50) {
+      if (!P.top_bar.waitListLoadingInfo.loading && !P.top_bar.waitListLoadingInfo.loaded) {
+        // need to init the waitlist modal
+        P.top_bar.waitListLoadingInfo.loading = true;
+        // if(P.top_bar.str_hash(P.top_bar.user.id) % 2 == 0) {
+        P.top_bar.initWaitlistModalWithImage();
+        P.top_bar.waitListLoadingInfo.which_modal = "image";       
+        // } else {
+        //   P.top_bar.showWaitlistModal2();
+        //   P.top_bar.waitListLoadingInfo.which_modal = "no_image";  
+        // }
+      }
+    }
+  },
+  showCareersStuff: function() {
+    if ((!(P.top_bar.user.isInst && !P.top_bar.user.isTA) && !P.top_bar.user.isPublic) || P.top_bar.isCareers) {
+      if( P.top_bar.user.showCareers )
+        $('.top_bar_careers_homescreen').show();
+        // P.top_bar.maybeShowHeadedToBanner();
+      //$('.my_name_wrapper').addClass('has_job_link');
+      //if (!PA.isSeenUser("careers_intro_modal")) {
+      //  // make sure images have loaded!!
+      //  $('.careers_intro_modal').waitForImages(function() {
+      //    $('.careers_intro_modal').show();
+      //  });
+      //  $('.close_careers_intro_modal').click(function(){
+      //    $('.careers_intro_modal').hide();
+      //    PA.markSeenUnseen("careers_intro_modal");
+      //  });
+      //  $('.careers_intro_image_wrapper a').click(function(){
+      //    var link = $(this).attr('href');
+      //    PA.call_pj("user.mark_seen", {msg:"careers_intro_modal"}, null, function(){
+      //      $.blockUI();
+      //      window.location = link;
+      //    });
+      //    return false;
+      //  });
+      //  $('.close_careers_intro_browse').click(function(){
+      //    PA.call_pj("user.mark_seen", {msg:"careers_intro_modal"}, null, function(){
+      //      $.blockUI();
+      //      window.location = '/careers/dashboard#/companies';
+      //    });
+      //  });
+      //}
+      if (!P.top_bar.allEvents) {
+        P.top_bar.rsvpdCompanies = [];
+        P.modules.getData("user_profile", 1, function(data){
+          var pro = PEM.callFirst("loadMyProfile", P.top_bar.loadAllEvents);
+          if (!pro) pro = data;
+          if (pro) {
+            P.top_bar.profile = pro;
+            P.top_bar.loadAllEvents(pro);
+            // show job join us link if criteria are met:
+            P.top_bar.maybeShowJobLink();
+            //if (P.top_bar.isDashboard && pro.academics && (pro.academics.grad_year == "2015" || pro.academics.grad_year == "2016") && PA.user.config.logins >= 30)
+            //  P.top_bar.showSeniorSurvey();
+            
+            var d = new Date();
+            var yr = d.getUTCFullYear();
+            var days_ago = new Date();
+            // var showingResumeDropdown = 
+            days_ago.setDate(days_ago.getDate() - 14);
+            
+            var last_seen_resume_dropdown = new Date(P.top_bar.user.config.resume_dropdown_last_seen || null);
+            var resume_reset_dates = [6, 7, 8, 9]; // month indexes w/ jan = 0
+            var resume_most_recent = new Date(yr - 1, resume_reset_dates[resume_reset_dates.length - 1], 15);
+            for (var i = 0; i < resume_reset_dates.length; i++) {
+              var cand = new Date(yr, resume_reset_dates[i], 15);
+              if(d > cand) resume_most_recent = cand;
+            }
+            var isShowingResumeDropdown = $("#upload_resume_dropdown").is(":visible");
+            // not opted out and the last time i saw it was before the most recent cut date and you haven't seen it too recently and i haven't uploaded a resume yet
+            if(P.top_bar.user.showCareers && (P.top_bar.user.config && P.top_bar.user.config.logins && P.top_bar.user.config.logins >= 15) && last_seen_resume_dropdown < resume_most_recent && last_seen_resume_dropdown < days_ago && !P.top_bar.profile.resume) {
+              P.top_bar.showResumeDropdown();
+            } else if(!isShowingResumeDropdown) {
+              var last_seen_job_dropdown = new Date(P.top_bar.user.config.job_dropdowns_last_seen || null);
+              var job_reset_dates = [0, 1, 2, 3, 9, 10]; // month indexes w/ jan = 0
+              var job_most_recent = new Date(yr - 1, job_reset_dates[job_reset_dates.length - 1], 15);
+              for (var i = 0; i < job_reset_dates.length; i++) {
+                var cand = new Date(yr, job_reset_dates[i], 15);
+                if(d > cand) job_most_recent = cand;
+              }
+              var job_yr = d.getUTCMonth() > 6 ? yr + 1 : yr;
+              if(P.top_bar.user.showCareers && (P.top_bar.user.config && P.top_bar.user.config.logins && P.top_bar.user.config.logins >= 15) && !(last_seen_job_dropdown > job_most_recent || last_seen_job_dropdown > days_ago || (P.top_bar.profile.status_what == "accepted_position" && P.top_bar.profile.status_when == job_yr))) {
+                P.top_bar.showJobStatus();        
+              }  
+            }
+            
+          }
+        });
+      }
+      if (!P.top_bar.allMessages) P.top_bar.loadAllMessages();
+      // if (P.top_bar.allStories && P.top_bar.allStories.events && P.top_bar.allStories.events.length > 0)
+      //   $('#event_notifications_button').show();
+      // P.top_bar.showJobStatus();
+    } else {
+      $('.top_bar_careers_homescreen').hide();
+    }
+  },
+  profileChange: function(profile) {
+    P.top_bar.userProfile = profile;
+    // decide if to show search
+    var myNr = parseInt(P.top_bar.user.id.substr(7), 36);
+    P.top_bar.showSearch = false;
+    /*
+    if (profile.school == "Stanford University" && myNr % 6 == 0) {
+      P.top_bar.showSearch = 1; // false: don't show, 1:show school, 2:show worked_at
+    }
+    if (P.top_bar.user.config.show_search) {
+      if (P.top_bar.user.config.show_search == "1")
+        P.top_bar.showSearch = 1;
+      else
+        P.top_bar.showSearch = false;
+    }*/
+    P.homescreen.updateNotificationPanel();
+    
+    if( typeof(P.feed.cid) == "undefined" && typeof(AUTO_POST) == "undefined") {
+      if (!P.homescreen.user.isTA && !P.homescreen.showingTechTour) PTM.getModuleTemplate("homescreen", "homescreen_student", P.homescreen.showStudent);
+      else if(!(P.homescreen && P.homescreen.showingTechTour)) PTM.getModuleTemplate("homescreen", "homescreen_instructor", P.homescreen.showStudent);
+    }
+  },
+  loadAllStories: function() {
+    P.modules.getData("career_stories", 1, function(data){
+      if (P.top_bar.allStories) return;
+      var allStories = {events:[], stories:[]};
+      var newCount = 0;
+      var lastSaw = "";
+      if (PA.user.config && PA.user.config.last_saw_careers)
+        lastSaw = new Date(PA.user.config.last_saw_careers);
+      for (var i = 0; i < data.length; i++) {
+        var item = data[i];
+        if (item.config.type && item.config.type == "event") {
+          var eventDate = new Date(item.show_at);
+          if (eventDate > lastSaw)
+            newCount += 1;
+          allStories.events.push(item);
+        } else {
+          allStories.stories.push(item);
+        }
+      }
+      if (newCount > 0) {
+        $(".event_count").html(newCount);
+        $(".event_count").show();
+      }
+      if (allStories.events.length > 0) {
+        $('#event_notifications_button').show();
+        var html = "";
+        for(var i = 0; i < allStories.events.length; i++) {
+          html += P.top_bar.eventStorySmallTemplate({item:allStories.events[i]});
+        }
+        $('.event_notifications_list').html(html);
+      }
+      //randomize stories
+      shuffleArray(allStories.stories);
+      P.modules.getDataLoaded("career_stories_all", allStories);
+      P.top_bar.allStories = allStories;
+    });
+  },
+  loadAllEvents: function(profile) {
+    // if not already doing this
+    if (P.top_bar.loadAllEventsTimout)
+      clearTimeout(P.top_bar.loadAllEventsTimout);
+    P.top_bar.loadAllEventsTimout = setTimeout(function() {P.top_bar.loadAllEvents(profile);}, 1000 * 60 * 60 * 6); // poll every 6 hours
+    PA.call_pj("company_event.get_my_events_info", {}, 1, function(data) {
+      P.top_bar.userProfile = profile;
+      var calcProfileProgress = function(profile) {
+        var progress = 0;
+        var hasLinks = false;
+        if (profile.links && (profile.links.stackoverflow || profile.links.github || profile.links.website || profile.links.linkedin))
+          hasLinks = true;
+        profile.has_links = hasLinks;
+        if (profile.has_links)
+          progress += 2;
+        if (profile.coding_since)
+          progress += 2;
+        if (profile.status)
+          progress += 2;
+        if (profile.visa)
+          progress += 2;
+        if (profile.roles && profile.roles.length > 0)
+          progress += 2;
+        var haveSkills = false;
+        if (profile.skills && profile.skills.length > 0)
+          haveSkills = true;
+        if (haveSkills)
+          progress += 10;
+        if (profile.resume || profile.resume_internal)
+          progress += 80;
+        profile.progress = progress;
+      };
+      calcProfileProgress(P.top_bar.userProfile);
+      var lastSawEvents = profile.profile_settings.last_saw_events;
+      var lastSawEventsMoment;
+      if (!lastSawEvents)
+        lastSawEventsMoment = moment().year(2013).startOf('year');
+      else
+        lastSawEventsMoment = moment(lastSawEvents);
+      
+      // Only include companies whose profile is actively shown
+      var _ciids = Object.keys(data.companies);
+      for (var i = 0; i < _ciids.length; i++) {
+        var ciid = _ciids[i];
+        if (!data.companies[ciid].show_profile) {
+          delete data.companies[ciid];
+        }
+      }
+      P.top_bar.allCompanies = data.companies;
+      
+
+      var weeks = {};
+      var processedWeeks = [];
+      P.top_bar.allEvents = {};
+      P.top_bar.futureEvents = [];
+      for (var i = 0; i < data.events.length; i++) {
+        var e = data.events[i];
+        e.rsvp_list = e.rsvp_list || [];
+        if (e.config && e.config.is_child)
+          continue;
+        if (!(P.top_bar.allCompanies && P.top_bar.allCompanies[e.internal_id]) && e.internal_id != "all")
+          continue;
+        if (e.start_date) {
+          e.start_date = new Date(e.start_date);
+          e.start_date = new Date(e.start_date.getUTCFullYear(),
+                                        e.start_date.getUTCMonth(),
+                                        e.start_date.getUTCDate());
+          e.date_time_str = moment(e.start_date).format("MM/DD") + ( e.start_time.trim().length > 0 ? " - " + e.start_time.trim() : "" );
+        }
+        if (e.end_date) {
+          e.end_date = new Date(e.end_date);
+          e.end_date = new Date(e.end_date.getUTCFullYear(),
+                                        e.end_date.getUTCMonth(),
+                                        e.end_date.getUTCDate());
+        }
+        if( (!e.description || e.description.trim().length == 0) && P.top_bar.allCompanies[e.internal_id] )
+          e.description = P.top_bar.allCompanies[e.internal_id].short_about_full || P.top_bar.allCompanies[e.internal_id].short_about;
+        e.description = e.description.replace(/(^|[^"'])(https?:\/\/(\([^\s<\[\]"\)]*\)|[^ \t\n<\[\]"()])+?(\([^\s<\[\]"\)]*\)|[\w\/?=)}#&]))(?=$|<br|<\/|\s|([\]\)]|&gt;)[\.,:;?!"'\-]*(\s|<br|<\/|$)|[\.,:;!"'\-]+(\s|<br|<\/|$))/g, '$1<a href="$2" target="_blank">$2</a>');
+        e.description_original = e.description; 
+        if (e.description.length > 300 && e.description.indexOf("href") < 0)
+        if (e.description.length > 300)
+          e.description = e.description.substring(0, 297) + "...";
+        if (e.published && e.show_at && moment(e.show_at) > lastSawEventsMoment)
+          e["new"] = true;
+        if (e.config && e.config.is_parent) {
+          e.children = [];
+          for (var j = 0; j < e.config.children.length; j++) {
+            var child = e.config.children[j];
+            if (P.top_bar.allCompanies[child.internal_id]) {
+              child.image = P.top_bar.allCompanies[child.internal_id].image;
+              child.name = P.top_bar.allCompanies[child.internal_id].name;
+              child.desc = child.name + "- " + P.top_bar.allCompanies[child.internal_id].short_about;
+              if (child.published && child.show_at && moment(child.show_at) > lastSawEventsMoment) {
+                e["new"] = true;
+                child["new"] = true;
+              }
+              e.children.push(child);
+              P.top_bar.allEvents[child.id] = child;
+            }
+          }
+        }
+        if (P.top_bar.allCompanies && P.top_bar.allCompanies[e.internal_id]) {
+          e.image = P.top_bar.allCompanies[e.internal_id].image;
+          e.name = P.top_bar.allCompanies[e.internal_id].name;
+        }
+        var momentDate = moment(e.start_date);
+        if (!weeks[momentDate.week()])
+          weeks[momentDate.week()] = {};
+        if (!weeks[momentDate.week()][momentDate.day()])
+          weeks[momentDate.week()][momentDate.day()] = [];
+        weeks[momentDate.week()][momentDate.day()].push(e);
+        if (e.end_date_str && e.start_date_str != e.end_date_str) {
+          var tomorrow = moment(e.start_date).add(1, "day");
+          var endDate = moment(e.end_date_str);
+          while (tomorrow <= endDate) {
+            if (!weeks[tomorrow.week()])
+              weeks[tomorrow.week()] = {};
+            if (!weeks[tomorrow.week()][tomorrow.day()])
+              weeks[tomorrow.week()][tomorrow.day()] = [];
+            weeks[tomorrow.week()][tomorrow.day()].push(e);
+            tomorrow.add(1, "day");
+          }
+        }
+        P.top_bar.allEvents[e.id] = e;
+        
+        if( e.start_date && moment().diff(e.start_date) < 0 ) {
+          P.top_bar.futureEvents.push(e);
+        } 
+      }
+      
+      if( P.homescreen ) {
+        if( P.homescreen.updateRecentCompanyImages )
+          P.homescreen.updateRecentCompanyImages();
+        if( P.homescreen.showCaag )
+          P.homescreen.showCaag();
+      }
+      
+      PEM.fire("allEvents", P.top_bar.allEvents);
+      var newCount = 0;
+      var followingEvents = [];
+      var nowWeek = moment().day("Monday").week();
+      var hasEvents = false;
+      for (var ii = nowWeek; ii < nowWeek + 2; ii++) {
+        week = weeks[ii];
+        if (week) {
+          var pWeek = [];
+          var w = moment().day("Monday").week(week).add(-1, "days");
+          w.add(-1, "days");
+          var seenEvents = {};
+          for (var i = 0; i < 7; i++) {
+            var date = w.add(1, "days");
+            dateFormatted = date.format("ddd, MMMM Do");
+            noDateFormatted = date.format("ddd");
+            var popoverSide = "right";
+            if (i >= 4)
+              popoverSide = "left";
+            if (week[i]) {
+              pWeek.push({events: week[i], date: dateFormatted, side: popoverSide});
+              hasEvents = true;
+              for (var j = 0; j < week[i].length; j++) {
+                var seenId = week[i][j].internal_id + week[i][j].title;
+                if (seenEvents[seenId])
+                  continue;
+                seenEvents[seenId] = 1;
+                if (week[i][j]["new"]) newCount += 1;
+                if (week[i][j].following)
+                  followingEvents.push(week[i][j]);
+              }
+            } else {
+              pWeek.push({events: [], date: noDateFormatted, side: popoverSide});
+            }
+          }
+          processedWeeks.push(pWeek);
+        }
+      }
+      // processedWeeks = [processedWeeks[0]];
+      if (processedWeeks.length == 0) {
+        processedWeeks = false;
+        $("#rsvp_header_1").hide();
+      }
+      PTM.getModuleTemplate("top_bar", "event_week", function(template){
+        P.top_bar.eventWeekTemplate = template;
+        $("#event_cal_popover").html(P.top_bar.eventWeekTemplate({events: processedWeeks}));
+        if (hasEvents) {
+          $("#event_notifications_button").show();
+          if (newCount > 0) {
+            $(".event_count").html(newCount);
+            $(".event_count").show();
+          }
+        }
+        var displayResumeHeader = function() {
+          if (followingEvents.length == 0) {
+            $('#rsvp_header_2').hide();
+            $('#rsvp_header_1').show();
+          } else {
+            $('#rsvp_header_1').hide();
+            $('#rsvp_header_2').show();
+            var comps = {};
+            var compArray = [];
+            for (var i = 0; i < followingEvents.length; i++) {
+              if (!comps[e.name]) {
+                comps[e.name] = 1;
+                compArray.push(e.name);
+              }
+            }
+            $('#rsvp_company_list').html(compArray.join(", "));
+            if (P.top_bar.userProfile.resume) {
+              $('#rsvp_company_no_resume').show();
+              $('#rsvp_company_have_resume').hide();
+            } else {
+              $('#rsvp_company_no_resume').hide();
+              $('#rsvp_company_have_resume').show();
+            }
+          }
+        };
+        // displayResumeHeader();
+        $(".event_cal_item").hover(function() {
+          var eid = $(this).attr("eid");
+          var e = P.top_bar.allEvents[eid];
+          if (!e) return false;
+          $("#event_title_info").html(e.title);
+          var dateStr = e.start_date_str;
+          if (e.end_date_str)
+            dateStr += " - " + e.end_date_str;
+          $("#event_date_info").html(dateStr);
+          var timeStr = e.start_time;
+          if (e.end_time)
+            timeStr += " - " + e.end_time;
+          $("#event_time_info").html(timeStr);
+          $("#event_location_info").html(e.location);
+          if (!e.internal_id == "all")
+            $("#event_logo_info").html("<img src='" + P.top_bar.allCompanies[e.internal_id].image + "' alt=''>")
+          $("#hover_info").addClass('show_info');
+        }, function() {
+          $("#hover_info").removeClass('show_info');
+        });
+        $(".child_event_cal_item").hover(function() {
+          var e = P.top_bar.allEvents[$(this).attr("eid")];
+          $(this).closest(".event_cal_item").find(".event_description").html(e.desc);
+        }, function() {
+          var e = P.top_bar.allEvents[$(this).closest(".event_cal_item").attr("eid")];
+          $(this).closest(".event_cal_item").find(".event_description").html(e.description);
+        });
+        $(".event_cal_item").click(function(click) {
+          if (click && $(click.target).closest(".event_hover_popover").length != 0 && $(click.target).closest("a").length == 0)
+            return false;
+          if (!(click && $(click.target).closest("a").length > 0)) {
+            var eid = $(this).attr('eid');
+            var e = P.top_bar.allEvents[eid];
+            if (!e) return false;
+            var params = {event_id: eid};
+            if (e.following) {
+              followingEvents = jQuery.grep(followingEvents, function(value) {return value != e;});
+              params.unfollow = true;
+              e.following = false;
+              $("[eid='" + eid + "']").removeClass("rsvped");
+              $("[eid='" + eid + "']").find(".event_wrapper").removeClass("rsvped_event");
+            } else {
+              e.following = true;
+              followingEvents.push(e);
+              $("[eid='" + eid + "']").addClass("rsvped");
+              $("[eid='" + eid + "']").find(".event_wrapper").addClass("rsvped_event");
+              if (e.config.is_parent) {
+                for (var i = 0; i < e.children.length; i++) {
+                  var name = e.children[i].name;
+                  if (!P.top_bar.rsvpdCompanies.exist(name))
+                    P.top_bar.rsvpdCompanies.push(name);
+                }
+              } else {
+                if (!P.top_bar.rsvpdCompanies.exist(e.name))
+                  P.top_bar.rsvpdCompanies.push(e.name);
+              }
+              if (P.top_bar.rsvpdCompanies.length == 1) {
+                $("#rsvp_company_list").html(e.name);
+              } else {
+                $("#rsvp_company_list").html(P.top_bar.rsvpdCompanies.length + "  companies");
+              }
+              var progress = P.top_bar.userProfile.progress;
+              if (!progress) progress = 0;
+              $("#profile_progress").html(progress);
+              $("#rsvp_header_1").hide();
+              $("#rsvp_header_2").show();
+            }
+            PA.call_pj("company_event.follow_unfollow_event", params, 1);
+            // displayResumeHeader();
+          }
+        });
+        $("#event_cal_popover").click(function(e) {
+          e.stopPropagation();
+        });
+      });
+    });
+  },
+  // clickOutsidePopover: function(e) {
+  //   if ($(e.target).closest(".event_actions_popover").length == 0) P.top_bar.closeEventPopover();
+  // },
+  // closeEventPopover: function() {
+  //   if (!P.top_bar.popoverToShow) return;
+  //   P.top_bar.popoverToShow = false;
+  //   $(".event_actions_popover").hide();
+  //   $(document).unbind('mousedown', P.top_bar.clickOutsidePopover);
+  // },
+  loadAllMessages: function() {
+    if (P.top_bar.loadAllMessagesTimout)
+      clearTimeout(P.top_bar.loadAllMessagesTimout);
+    P.top_bar.loadAllMessagesTimout = setTimeout(function() {P.top_bar.loadAllMessages();}, 1000 * 60 * 60); // poll every 1 hour
+    PA.call_pj("memo.get_unread_message_count", {}, 1, function(data){
+      if (data > 0) {
+        $(".message_count").html(data);
+        $(".message_count").show();
+      } else
+        $(".message_count").hide();
+      P.top_bar.allMessages = [];
+    }, function(err){
+      $(".message_count").hide();
+    });
+
+
+      // if (P.top_bar.allMessages) return;
+      // var allMessages = [];
+      // var newCount = 0;
+      // var lastSaw = "";
+      // if (PA.user.config && PA.user.config.last_saw_messages)
+      //   lastSaw = new Date(PA.user.config.last_saw_messages);
+      // for (var i = 0; i < data.length; i++) {
+      //   var message = data[i];
+      //   var messageDate = new Date(message.when);
+      //   if (messageDate > lastSaw)
+      //     newCount += 1;
+      //   allMessages.push(message);
+      // }
+      // if (newCount > 0) {
+      //   $(".message_count").html(newCount);
+      //   $(".message_count").show();
+      //   PA.call_pj("generic.event_to_requests", {event: "careers.message_count_shown",count:newCount},1);
+      // }
+      // if (allMessages.length > 0) {
+      //   $("#message_notifications_button").show();
+      //   PA.call_pj("generic.event_to_requests", {event: "careers.message_icon_shown",count:newCount},1);
+      //   var html = "";
+      //   for (var i = 0; i < allMessages.length && i<4; i++) {
+      //     var newDate = new Date(allMessages[i].when).getFullDate();
+      //     allMessages[i].date = newDate;
+      //     html += P.top_bar.messageSmallTemplate(allMessages[i]);
+      //   }
+      //   $('.messages_notifications_list').html(html);
+      // }
+      // P.modules.getDataLoaded("messages_all", allMessages);
+      // P.top_bar.allMessages = allMessages;
+    // });
+  },
+  getUserData: function() {
+    PA.call_pj("user.status", {}, null, function(data, aid) {
+      P.top_bar.user = data;
+      PA.cacheUser(data);
+      if (data.networks.length == 0)
+        data.hasNoClasses = true;
+      $("#top_bar").replaceWith(P.top_bar.template(data));
+      P.top_bar.initEventHandlers();
+      P.top_bar.initTipsies();
+      if (data.id.indexOf("public_") == 0 || data.email == "tutorial") data.isPublic = true;
+      if (data.id.indexOf("public_faq") == 0 || data.email == "tutorial") data.isPublicFaq = true;
+      data.is_public = data.isPublic;
+      if (!data.config) data.config = {};
+      if (!data.config.email_prefs) data.config.email_prefs = {};
+      P.modules.setUser(data);
+      P.top_bar.setUserAndPopulateNetworks(data);
+      if (typeof(CAN_ADMIN) != 'undefined' && CAN_ADMIN) {
+        $('.top_bar_company').show();
+      }
+      if (typeof(IS_NEW_CAREERS) != 'undefined' && IS_NEW_CAREERS) {
+        $("#report_bug_item").hide();
+        P.top_bar.thisIsCareers();
+      }
+
+      PEM.fire("user", data);
+    }, function(err) {
+      if (err == "Email verification needed") {
+        if (PA.pushCurrent) {
+          PA.pushCurrent.abort();
+          PA.pushAbort = false;
+          PA.pushCurrent = false;
+        }
+        window.location = "/email_auth";
+        return;
+      }
+      // no user; show login button
+      $('.top_bar_middle').hide();
+      $('.top_bar_right.logged_in').hide();
+      $('#network_button').hide();
+      $('.top_bar_dropdown_wrapper').hide();
+      $('.top_bar_right.logged_out').show();
+      if (typeof(COMPANY_USER) != 'undefined') {
+        if (typeof(COMPANY_USER_ID) != 'undefined') {
+          P.top_bar.careersPing();
+        }
+        $('.top_bar_right.logged_out').hide();
+        if (typeof(COMPANY_USER) != 'undefined' && COMPANY_USER) {
+          var templateParams = {};
+          if (typeof(MY_NAME) != 'undefined')
+            templateParams.my_name = MY_NAME;
+          $("#top_bar").replaceWith(P.top_bar.template(templateParams));
+          P.top_bar.initEventHandlers();
+          $('.top_bar_right.logged_in_company_profile').show();
+          $('.top_bar_middle').show();
+          $('.top_bar_company').show();
+        }
+        else
+          $('.top_bar_right.logged_out_company_profile').show();
+      }
+    });
+  },
+  openDropDown: function(menu) {
+    closeDropDown();
+    var dropdown_wrapper = menu.closest('.top_bar_dropdown_wrapper');
+    dropdown_wrapper.show();
+  },
+  thisIsDashboard: function() {
+    $('.top_bar_qa').addClass("active");
+    P.top_bar.isDashboard = true;
+    if (P.top_bar.network.type != "group") {
+      if (P.top_bar.network.total_content_stud > 20)
+        $('.class_report').show();
+      if (!P.top_bar.user.isPublic && P.top_bar.network.id != "stories_" + P.top_bar.user.id)
+        $('.topbar_icons.stats').show();
+      if (!P.top_bar.user.is_public && P.top_bar.schoolExt && P.top_bar.user.networks[0].type != "public" && !P.top_bar.user.isInst
+           && P.homescreen.user.config.logins > 10) {
+        if (!P.top_bar.user.config.careers || !P.top_bar.user.config.careers.stop) {
+          $('#careers_button').show();
+        }
+      }
+      if (!P.top_bar.user.is_public && !P.top_bar.user.isInst) {
+        if (P.top_bar.user.config.careers && P.top_bar.user.config.careers.signed) {
+          $('#careers_button_signed').show();
+          $('#careers_button').hide();
+        }
+      }
+      if (!P.top_bar.user.isPublic)
+        P.top_bar.showCareersStuff();
+    }
+  },
+  thisIsCareers: function() {
+    P.top_bar.isCareers = true;
+    //$("#classes_brand").hide();
+    //$("#careers_brand").show();
+    //$(".top_bar_tab").hide();
+    //$(".class_list").hide();
+    //$(".topbar_icon").hide();
+    //$(".top_bar_classes_homescreen").show();
+    $('.top_bar_manage').hide();
+    $('.careers_dashboard_link').addClass('active');
+    $('.topbar_events_icon').unbind().click(function(){
+      $(".event_count").hide();
+      if (P.top_bar.userProfile)
+        P.top_bar.userProfile.profile_settings.last_saw_events = moment().format();
+      P.top_bar.reloadEventsCount += 1;
+      window.location.href = "/careers/dashboard#/events?reload=" + P.top_bar.reloadEventsCount;
+      PA.call_pj("user_profile.set_last_saw_events", {}, 1);
+      return false;
+    });
+    P.top_bar.showCareersStuff();
+  },
+  thisIsManage: function() {
+    P.top_bar.isManage = true;
+    $('.top_bar_manage').addClass('active');
+    $('.topbar_events_icon').click(function(){
+      window.location.href = "/careers/dashboard#/events";
+      return false;
+    });
+  },
+  cleanDashboard: function() {
+    $('.top_bar_statistics').removeClass('active');
+    if (P.top_bar.isDashboard)
+      $('.top_bar_qa').addClass('active');
+  },
+  resetEventNotifications: function() {
+    $(".event_count").hide();
+  },
+  resetMessageNotifications: function() {
+    $(".message_count").hide();
+  },
+  showSeniorSurvey: function() {
+    return;
+    if (PA.isSeenUser('seniors_survey')) return; // don't show if already seen
+    PA.markSeenUnseen("seniors_survey_view");
+    $('#in_market_option, #off_market_option').click(function(){
+      $('#seniors_survey .input_section').removeClass('checked');
+      if ($('#in_market_option').is(":checked")) $('#in_market_option').closest('.input_section').addClass('checked');
+      if ($('#off_market_option').is(":checked")) $('#off_market_option').closest('.input_section').addClass('checked');
+    });
+    $('#seniors_survey #confirm_button, #seniors_survey #close_button').click(function(){
+      var params = {};
+      if ($('#in_market_option').is(":checked"))
+        params.seeking = true;
+      if ($('#off_market_option').is(":checked")) {
+        params.not_seeking = true;
+        params.company = $('#seniors_survey .company_name_input').val();
+      }
+      if ($('#seniors_survey #seek_full_time').is(":checked"))
+        params.seeking_full = true;
+      if ($('#seniors_survey #seek_internship').is(":checked"))
+        params.seeking_intern = true;
+      if ((params.seeking || params.not_seeking) && !P.top_bar.surveySaved) {
+        P.top_bar.surveySaved = true;
+        PA.call_pj("user_profile.senior_survey", params, 1);
+      }
+      if (params.seeking && $(this).attr("id") != 'close_button') {
+        $('#seniors_survey .first_view').hide();
+        $('#seniors_survey .second_view').show();
+        $('#seniors_survey #confirm_button').hide();
+        $('#seniors_survey #done_button').show();
+      } else {
+        PA.markSeenUnseen("seniors_survey");
+        $('#seniors_survey').modal('hide');
+      }
+    });
+    $('#seniors_survey #done_button').click(function(){
+      PA.markSeenUnseen("seniors_survey");
+      $('#seniors_survey').modal('hide');
+    });    
+    $('#seniors_survey').modal('show');
+  },
+  // addCareersNotification: function(notification, displayAll) {
+  //   P.top_bar.careersNotifications.push(notification);
+  //   if (displayAll){
+  //     P.top_bar.displayCareersNotifications(false);
+  //   }
+  // },
+  clickOnCareersNotification: function(nofId) {
+    var nof = P.top_bar.careersNotifications[nofId];
+    var params = {
+      subject: "click from top notification: " + nof.type,
+      action: "notification click (link on dropdown notification)",
+      data: nof.content
+    }
+    // PA.call_pj("student_careers.bcc", params, 1);
+  },
+  closeNotification: function(nofId) {
+    // send an email for feedback
+    var nof = P.top_bar.careersNotifications[nofId] || {};
+    var type = nof.type || "";
+    // P.top_bar.sendFeedBackEmailHideCareersNof(nof);
+    delete P.top_bar.careersNotifications[nofId];
+    P.top_bar.displayCareersNotifications(true);
+
+    // log hide notification in vertica
+    PA.call_pj("generic.event_to_requests", {event: "c_nof.hide.dropdown." + type}, 1);
+    return false;
+  },
+  sendFeedBackEmailHideCareersNof: function(nof){
+    var nid = P.top_bar.network.id;
+    var params =  { nof:nof,
+                    nid:nid,
+                    location_type:"dropdown"
+    };
+    PA.call_pj("user.send_feedback_email_hide_careers_nof", params, 1);
+  },
+  showPiazzaStory: function(nofId){
+    P.feed.autoSelect = nofId;
+    P.top_bar.changeNetwork("stories_" + P.top_bar.user.id, false, true);
+    PA.call_pj("generic.event_to_requests", {event: "c_nof.click.piazza_story_dropdown", nof_id: nofId}, 1);
+  },
+  displayCareersNotifications: function(clearCount) {
+    var html = "";
+    var cnt = 0;
+    var nofsToMarkAsRead = [];
+    var nofMap = P.top_bar.careersNotifications || {};
+
+    // sort nofs by time
+    var nofs = [];
+    for (var nofId in nofMap) {
+      nofs.push(nofMap[nofId]);
+    }
+    var compare = function(a, b){
+      if (a.notification_event_time < b.notification_event_time){
+        return 1;
+      }
+      if (a.notification_event_time > b.notification_event_time){
+        return -1;
+      }
+      return 0;
+    }
+    nofs.sort(compare);
+
+
+
+    for (var i = 0; i<nofs.length; i++) {
+      var nof = nofs[i];
+      var nofId = nof.id;
+      var content = nof.content || "";
+      var status = nof.status || "";
+      var hideCompanyMessage = "Hide Company";
+      if (content.indexOf(" and ") > -1){
+        hideCompanyMessage = "Hide Companies";
+      }
+      var image_source = nof.image_source || P.feed.notificationProperties.defaultImage;
+      var link = nof.link;
+      html += '<li class="careers_notification clearfix" onclick="P.top_bar.clickOnCareersNotification(\'' + nofId + '\'); P.top_bar.showPiazzaStory(\''+nofId+'\')">' +
+              
+      // // code for a dropdown for close out options:
+      //         '<div class="careers_notification_close dropdown-submenu"><a href=""><i class="icon-chevron-down"></i></a>'+
+      //         '<ul class="dropdown-menu notification_dropdown" role="menu" aria-labelledby="dLabel">'+
+      //         '<li><a tabindex="-1" href="#" onclick="var element = arguments[0]; element.stopPropagation(); return P.top_bar.closeNotification(\'' + nofId + '\')"><span class="main_title">'+hideCompanyMessage+'</span><span class="sub_title">(See fewer stories like this)</span></a></li>';
+      // if (nof.company && nof.company != "?"){
+      //   html += '<li><a tabindex="-1" href="#" onclick="return P.top_bar.closeNotification(\'' + nofId + '\')"><span class="main_title">Hide Company</span><span class="sub_title">(Stop seeing stories from this company)</span></a></li>';
+      // }
+      // html += '</ul>'+
+      //         '</div>'+
+
+              // // code for a simple close out option:
+              // '<div class="careers_notification_close dropdown-submenu">'+
+              //     '<a class="close" onclick="var element = arguments[0]; element.stopPropagation(); return P.top_bar.closeNotification(\'' + nofId + '\')">&times;</a>'+
+              // '</div>'+
+
+              '<div class="careers_notification_image">' +
+              '<img src="' + image_source + '" alt="">' +
+              '</div>' +
+              '<div class="careers_notification_content">' +
+              '<a class="notification_title">' + content + '</a>' +
+              //'<div class="notification_subtitle">' + n.when.toRelativeTime() + '</div>' +
+              '<div class="notification_subtitle">' + '' + '</div>' +
+              '</div></li>';
+      if (clearCount) {
+        // mark as read when dropdown is shown. Next time the page is reloaded, they won't be shown
+        nofsToMarkAsRead.push(nofId);
+      }
+      if (!clearCount && status != "read"){
+        cnt += 1;
+      }
+    }
+    if (Object.keys(P.top_bar.careersNotifications).length == 0){
+      html = '<li class="careers_notification clearfix">'+
+               '<div class="careers_notification_content">'+
+                 '<div class="notification_title">'+
+                    'No Notifications Yet...'+
+                  '</div>'+
+                '</div>'+
+              '</li>';
+    }
+    if (cnt == 0) {
+      $('.careers_notifications_count').hide();
+    } else {
+      $('.careers_notifications_count').html(cnt);
+      $('.careers_notifications_count').show();
+    }
+    $(".careers_dropdown_notify").html(html);
+    if (clearCount && nofsToMarkAsRead.length > 0){
+      // tell petty to update nofs as read when the dropdown is clicked
+      for (var i=0; i<nofsToMarkAsRead.length; i++) {
+        var nof = P.top_bar.careersNotifications[nofsToMarkAsRead[i]];
+        if (nof) {
+          nof.status = "read";
+        }
+      }
+      PA.call_pj("notification.mark_as_read", {nof_ids:nofsToMarkAsRead}, 1);
+    }
+  },
+  displayCareersNotificationsOptions: function(from) {
+    P.top_bar.controlType = from;
+    var all = $('.notification_type');
+    var conf = P.top_bar.user.config;
+    for (var i = 0; i < all.length; i++) {
+      var e = $(all[i]);
+      if (!conf.c_notify_types || conf.c_notify_types[e.attr("id")])
+        e.attr("checked", true);
+      else
+        e.attr("checked", false);
+    }
+    // select check-boxes based on user.config.career_notifications
+  },
+  // returns true if they should see the job link and false other wise
+  maybeShowJobLink: function(){
+    var show = false;
+    var allowed_sids = ["gl6490d0F6I",
+     "gllosozkzhN",
+     "gokwpw09NKa",
+     "gk0fzg35Y04",
+     "gngvqcstkXS ",
+     "gk5dv4aekMO ",
+     "gic5as6rqBl",
+     "gk64clti7wu ",
+     "gl6490d0F6I ",
+     "gjysakwqrhW",
+     "ghzif8rpvM6 ",
+     "gjx4e558uyh ",
+     "gn8z4cpjBfm",
+     "gokwpsepEub ",
+     "gokwpvfj9pa ",
+     "gokwpv6jkN0",
+     "gokwpvhleJq",
+     "gokwprfenOt",
+     "gokwpvcuScv ",
+     "gokwpvey6YT ",
+     "gokwprnma7g",
+     "gokwpr6dIY7 ",
+     "gkqwvte03tf",
+     "ghzif8rpvM6",
+     "gkst2179pxo",
+     "gngvqcstkXS",
+     "giw3ltw94uU",
+     "ghziegkpSkh",
+     "gk64clti7wu",
+     "gj5y8clufaK",
+     "gjbvs5w8Z24",
+     "gjd7awkvc8M",
+     "gjuc1g5fEBY",
+     "gjlgcf6vcMU",
+     "h6v9rjm85j86ft",
+     "gkjh4yq0HTm",
+     "gj6b0zumtST"
+    ];
+    // net info
+    var network = P.top_bar.network || {};
+    var network_type = "";
+    var network_sid = "";
+    // academics info
+    var my_profile = P.top_bar.userProfile || {};
+    var my_major = "";
+    // current class role info
+    var my_role = "";
+    var my_user = P.top_bar.user || {};
+
+    // don't show if don't have enough info
+    if (  Object.keys(network).length == 0 ||
+          Object.keys(my_profile).length == 0 ||
+          Object.keys(my_user).length == 0 ) {
+      return false;
+    }
+
+    network_type = network['type'] || '';
+    network_sid = network['school_id'] || '';
+    my_year = (my_profile['academics'] || {})['grad_year'] || '';
+    my_major = (my_profile['academics'] || {})['major'] || '';
+    my_role = my_user['role'] || '';
+
+    if (  my_year.length > 0 &&
+          (my_year == '2017' || my_year == '2018') && 
+          network_type != 'no-verify' &&
+          allowed_sids.indexOf(network_sid) > -1 &&
+          (my_role == 'student' || my_role == 'ta') && 
+          !PA.isProfessor()
+        ) {
+      show = true;
+    } else {
+      show = false;
+    }
+    // Uncomment out to allow job link to show:
+    if (show) {
+      $('span.my_name_wrapper').addClass("has_job_link");
+      $('span.job_link').show();
+    } else {
+      $('span.my_name_wrapper').removeClass("has_job_link");
+      $('span.job_link').hide();
+    }
+    return show;
+  },
+  init: function(module) {
+    PEM.addListener("changeNetwork", function(param){P.top_bar.changeNetwork(param.id, param.show)})
+    PEM.addListener("thisIsDashboard", P.top_bar.thisIsDashboard);
+    PEM.addListener("thisIsCareers", P.top_bar.thisIsCareers);
+    PEM.addListener("thisIsManage", P.top_bar.thisIsManage);
+    PEM.addListener("isDashboard", function(){return P.top_bar.isDashboard});
+    PEM.addListener("gotoCoursePage", P.top_bar.gotoCoursePage);
+    PEM.addListener("gotoConfigClass", P.top_bar.gotoConfigClass);
+    PEM.addListener("showBugReport", P.top_bar.showBugReportExternal);
+    PEM.addListener("ensureTooltips", P.top_bar.ensureTooltips);
+    PEM.addListener("resetEventNotifications", P.top_bar.resetEventNotifications);
+    PEM.addListener("resetMessageNotifications", P.top_bar.resetMessageNotifications);
+    PEM.addListener("profileChange", P.top_bar.profileChange);
+    PEM.addListener("cleanDashboard", P.top_bar.cleanDashboard);
+    PEM.addLastListener("feed_created", P.top_bar.ensureTooltips);
+    PEM.addLastListener("feed_filtered", P.top_bar.ensureTooltips);
+    PEM.addLastListener("content", P.top_bar.ensureTooltips);
+    PTM.getModuleTemplate("careers_dashboard", "careers_dashboard_event_story_small", function(template){P.top_bar.eventStorySmallTemplate = template});
+    PTM.getModuleTemplate("careers_dashboard", "careers_dashboard_message_small", function(template){P.top_bar.messageSmallTemplate = template});
+
+    P.top_bar.template = module.template;
+    $("body").prepend(module.template({}));
+
+    P.top_bar.initEventHandlers();
+    P.top_bar.initTipsies();
+    P.top_bar.getUserData();
+
+  },
+  loadQaSite: function() {
+    if (P.top_bar.isDashboard) {
+      $(".top_bar_tab").removeClass("active");
+      $(".top_bar_qa").addClass("active");
+      PEM.fire("cleanDashboard");
+      PEM.fire("showHomescreen");
+      PEM.fire("showFeed");
+      if (!P.top_bar.user.isInst)
+        PA.call_pj("generic.page_event", {type:"top_bar.qa_tab_click"}, 1, function(){});
+    } else {
+      window.location = "/class/" + P.top_bar.nid;
+      return false;
+    }    
+  }
+}, 
+
+(function(a){var b,e=a();a.fn.b_sortable=function(c){var j=String(c);c=a.extend({connectWith:!1},c);return this.each(function(){if(/^enable|disable|destroy$/.test(j)){var g=a(this).children(a(this).data("items")).attr("draggable","enable"==j);"destroy"==j&&g.add(this).removeData("connectWith items").off("dragstart.h5s dragend.h5s selectstart.h5s dragover.h5s dragenter.h5s drop.h5s")}else{var h,k,g=a(this).children(c.items),f=a("<"+(/^ul|ol$/i.test(this.tagName)?"li":"div")+' class="sortable-placeholder">');
+g.find(c.handle).mousedown(function(){h=!0}).mouseup(function(){h=!1});a(this).data("items",c.items);e=e.add(f);c.connectWith&&a(c.connectWith).add(this).data("connectWith",c.connectWith);g.attr("draggable","true").on("dragstart.h5s",function(d){if(c.handle&&!h)return!1;h=!1;d=d.originalEvent.dataTransfer;d.effectAllowed="move";d.setData("Text","dummy");k=(b=a(this)).addClass("sortable-dragging").index()}).on("dragend.h5s",function(){b&&(b.removeClass("sortable-dragging").show(),e.detach(),k!=b.index()&&
+b.parent().trigger("sortupdate",{item:b}),b=null)}).not("a[href], img").on("selectstart.h5s",function(){this.dragDrop&&this.dragDrop();return!1}).end().add([this,f]).on("dragover.h5s dragenter.h5s drop.h5s",function(d){if(!g.is(b)&&c.connectWith!==a(b).parent().data("connectWith"))return!0;if("drop"==d.type)return d.stopPropagation(),e.filter(":visible").after(b),b.trigger("dragend.h5s"),!1;d.preventDefault();d.originalEvent.dataTransfer.dropEffect="move";g.is(this)?(c.forcePlaceholderSize&&f.height(b.outerHeight()),
+b.hide(),a(this)[f.index()<a(this).index()?"after":"before"](f),e.not(f).detach()):!e.is(this)&&!a(this).children(c.items).length&&(e.detach(),a(this).append(f));return!1})}})}})(jQuery);
+
+!function(a){var b="waitForImages";a.waitForImages={hasImageProperties:["backgroundImage","listStyleImage","borderImage","borderCornerImage","cursor"]},a.expr[":"].uncached=function(b){if(!a(b).is('img[src!=""]'))return!1;var c=new Image;return c.src=b.src,!c.complete},a.fn.waitForImages=function(c,d,e){var f=0,g=0;if(a.isPlainObject(arguments[0])&&(e=arguments[0].waitForAll,d=arguments[0].each,c=arguments[0].finished),c=c||a.noop,d=d||a.noop,e=!!e,!a.isFunction(c)||!a.isFunction(d))throw new TypeError("An invalid callback was supplied.");return this.each(function(){var h=a(this),i=[],j=a.waitForImages.hasImageProperties||[],k=/url\(\s*(['"]?)(.*?)\1\s*\)/g;e?h.find("*").addBack().each(function(){var b=a(this);b.is("img:uncached")&&i.push({src:b.attr("src"),element:b[0]}),a.each(j,function(a,c){var d,e=b.css(c);if(!e)return!0;for(;d=k.exec(e);)i.push({src:d[2],element:b[0]})})}):h.find("img:uncached").each(function(){i.push({src:this.src,element:this})}),f=i.length,g=0,0===f&&c.call(h[0]),a.each(i,function(e,i){var j=new Image;a(j).on("load."+b+" error."+b,function(a){return g++,d.call(i.element,g,f,"load"==a.type),g==f?(c.call(h[0]),!1):void 0}),j.src=i.src})})}}(jQuery);

@@ -1,0 +1,33 @@
+var GeneralInformationController = Spine.Controller.sub({
+  events: {
+    "click .btn_remove_row": "remove"
+  },
+  elements: {
+    ".input-label": "input_label",
+    ".input-text": "input_text"
+  },
+  init: function(){
+    this.item.bind("save", this.proxy(this.render));
+    this.item.bind("destroy", this.proxy(this.release));
+    Spine.bind("course_information_general_information_save", this.proxy(this.save));
+  },
+  render: function() {
+    this.item.set_text_to_html();
+    this.replace(ich.tpl_general_information(this.item));
+    this.input_label.focus();
+    return this;
+  },
+  focus_input: function() {
+    this.input_label.focus();
+  },
+  remove: function() {
+    this.item.destroy();
+  },
+  save: function() {
+    if (this.item.destroyed) return;
+    this.item.updateAttributes({
+      label: this.input_label.val(),
+      text: this.input_text.val()
+    });
+  }
+});

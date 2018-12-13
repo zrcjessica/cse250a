@@ -1,0 +1,219 @@
+var P = {};
+
+P.modules = {
+  user: false,
+  network: false,
+  modules: {}, // this is a hashmap of all loaded modules
+  cacheBuster: 0, // this should be initialized to current version for cache busting
+  data: {}, // for managing data
+  dataLoading: {},
+  dataCallbacks: {},
+  /*
+   *  This funciton loads module, if module is not yet loaded.
+   *  Modules are only loaded after document.ready is called
+   */
+  loadModule: function(moduleName, options, callback, staticHTML) {
+    if (P.modules.modules[moduleName]) {
+      if (callback) {
+        if (P.modules.modules[moduleName].isLoaded) {
+          callback.call(window);
+        } else {
+          P.modules.modules[moduleName].callbacks.push(callback);
+        }
+      }
+      return;
+    }
+    P.modules.modules[moduleName] = {
+      name: moduleName,
+      callbacks: [],
+      options: {},
+      isLoaded: false
+    };
+    if (callback)
+      P.modules.modules[moduleName].callbacks.push(callback);
+    if (options)
+      P.modules.modules[moduleName].options = options;
+    if (!$.isReady) {
+      if (staticHTML)
+        P.modules.modules[moduleName].template = PTM.createModuleTemplate(moduleName, moduleName, staticHTML);
+    } else {
+      P.modules._loadModule(P.modules.modules[moduleName]);
+    }
+  },
+
+  _loadModule: function(module) {
+    // inject CSS
+    // inject JS
+    // load HTML template
+    // call module init
+    var moduleName = module.name;
+    if (!module.template) {
+      P.modules.load("/modules/" + moduleName + "/" + moduleName + ".css", 1, function(css) {
+        $('head').append('<style>' + css + '</style>');
+      });
+      P.modules.load("/modules/" + moduleName + "/" + moduleName + ".js", 1, function(js) {
+        $('head').append('<script type="text/javascript">' + js + '</script>');
+        module.js = js;
+        if (module.js && module.template) {
+          // both JS and template are loaded. Init module
+          P.modules._loadModuleDone(module);
+          // call all
+        }
+      });
+      PTM.getModuleTemplate(moduleName, moduleName, function(template){
+        module.template = template;
+        if (module.js && module.template) {
+          // both JS and template are loaded. Init module
+          P.modules._loadModuleDone(module);
+        }
+      });
+    } else {
+      // template is set, it means that this is a static include. No need to load anything.
+      P.modules._loadModuleDone(module);
+    }
+  },
+  loadJS: function(js, callback) {
+    P.modules.load(js, 1, function(js) {
+      $('head').append('<script type="text/javascript">' + js + '</script>');
+      if (callback) callback.call();
+    });
+  },
+  _loadModuleDone: function(module) {
+    module.isLoaded = true;
+    module.options.user = P.modules.user;
+    module.options.network = P.modules.network;
+    //try {
+      eval("P." + module.name + ".init(P.modules.modules['" + module.name + "'])");
+    //} catch (err) {}
+    for (var i = 0; i < module.callbacks.length; i++) {
+      if (module.callbacks[i])
+        module.callbacks[i].call(window);
+    }
+  },
+
+  initQueuedModules: function() {
+    for (var name in P.modules.modules) {
+      var module = P.modules.modules[name];
+      if (!module.isLoaded)
+        P.modules._loadModule(module);
+    }
+  },
+
+  load: function(path, blockObject, callback, error) {
+    if (!path) return;
+    if (blockObject) {
+      if (blockObject != 1) blockObject.block();
+    } else
+      $.blockUI();
+    if (path.indexOf('?') < 0)
+      path += "?t=" + P.modules.cacheBuster;
+    else
+      path += "&t=" + P.modules.cacheBuster;
+    $.ajax({
+      url: path,
+      type: 'GET',
+      dataType: 'html',
+      success: function(data) {
+        if (blockObject) {
+          if (blockObject != 1) blockObject.unblock();
+        } else
+          $.unblockUI();
+        if (data && callback)
+          callback.call(window, data);
+      },
+      error: function(req, status, err) {
+        if (blockObject)
+          if (blockObject != 1) blockObject.unblock();
+        else
+          $.unblockUI();
+        if (error)
+          error.call(window, err);
+      }
+    });
+  },
+  setUser: function(u) {
+    P.modules.user = u;
+    PA.user = u;
+    if (!P.modules.doneInitUser)
+      P.modules.initUser();
+    // go through all modules and set user
+  },
+  setNetwork: function(net) {
+    P.modules.network = net;
+  },
+  initUser: function() {
+    if (!P.modules.documentReady) return;
+    if (P.modules.doneInitUser) return;
+    P.modules.doneInitUser = true;
+    for (var name in P.modules.modules) {
+      try {
+        eval("P." + name + ".setUser(P.modules.user)");
+        eval("P." + name + ".setNetwork(P.modules.network)");
+      } catch (err) {}
+    }
+  },
+  // specific functions to load and access important data
+  getData: function(type, block, callback, param) {
+    if (P.modules.data[type]) {
+      callback.call(window, P.modules.data[type]);
+      return;
+    }
+    if (!P.modules.dataCallbacks[type]) P.modules.dataCallbacks[type] = [];
+    P.modules.dataCallbacks[type].push(callback);
+    if (P.modules.dataLoading[type]) return; // we are already loding this data. Callback will be triggered
+    // based on type, load this data
+    P.modules.dataLoading[type] = true;
+    if (type == "user") {
+      PA.call_pj("user.status", {}, block, function(data) {
+        P.modules.getDataLoaded(type, data);
+      });
+    }
+    if (type == "user_profile") {
+      PA.call_pj("user_profile.get_profile", {}, block, function(data) {
+        P.modules.getDataLoaded(type, data);
+      }, function(err){});
+    }
+    if (type == "career_stories") {
+      PA.call_pj("careers_story.get_user_stories", {}, block, function(data){
+        P.modules.getDataLoaded(type, data);
+      }, function(err){alert(err);});
+    }
+    if (type == "company_list") {
+      PA.call_pj("careers_company.company_list", {}, block, function(data){
+        P.modules.getDataLoaded(type, data);
+      }, function(err){alert(err);});
+    }
+    if (type == "careers_feed_stories") {
+      PA.call_pj("user_profile.get_careers_feed_stories", {}, block, function(data){
+        P.modules.getDataLoaded(type, data);
+      }, function(err){alert(err);});
+    }
+    if (type == "company_list_new") {
+      PA.call_pj("company.get_all_companies", {}, block, function(data){
+        P.modules.getDataLoaded(type, data);
+      }, function(err){alert(err);});
+    }
+    if (type.indexOf("company_profile_") == 0) {
+      var internalId = type.replace("company_profile_", "");
+      PA.call_pj("careers_company.get_profile", {internal_id: internalId}, block, function(data){
+        P.modules.getDataLoaded(type, data);
+      }, function(err){alert(err);});
+    }
+  },
+  getDataLoaded: function(type, data) {
+    P.modules.data[type] = data;
+    P.modules.dataLoading[type] = false;
+    if (P.modules.dataCallbacks[type]) {
+      for (var i = 0; i < P.modules.dataCallbacks[type].length; i++)
+        P.modules.dataCallbacks[type][i].call(window, data);
+    }
+  }
+};
+
+$(document).ready(function() {
+  P.modules.initQueuedModules();
+  P.modules.documentReady = true;
+  if (P.modules.user) {
+    P.modules.initUser();
+  }
+});

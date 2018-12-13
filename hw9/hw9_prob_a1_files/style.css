@@ -1,0 +1,893 @@
+/*General*/
+.non_selectable_text {
+  user-select: none;
+  -moz-user-select: none;
+  -khtml-user-select: none;
+}
+body {
+  background: white !important;
+  text-decoration: none;
+}
+input,
+textarea {
+  color: #000;
+}
+.placeholder {
+  color: #aaa;
+}
+.btn_link {
+  cursor: pointer;
+}
+.modal {
+  background: white !important;
+}
+.popover.bottom {
+  margin-top: 10px;
+}
+.popover.bottom .arrow {
+  top: -10px;
+  left: 50%;
+  margin-left: -10px;
+  border-bottom-color: #fff;
+  border-width: 0 10px 10px;
+}
+/*Misc*/
+.public_visibility_message_wrapper {
+  float: right;
+  width: 420px;
+  height: 50px;
+}
+.public_visibility_message_wrapper #public_visibility_message {
+  display: block;
+  float: right;
+  width: 240px;
+  margin-bottom: 0px;
+  margin-right: 10px;
+  padding-right: 8px;
+}
+.public_visibility_message_wrapper .public_visibility_logo {
+  background: url(../../images/splash/lock_icon.png) left top no-repeat;
+  width: 16px;
+  height: 16px;
+  float: right;
+  margin-top: 30px;
+  cursor: pointer;
+  opacity: 0.5;
+}
+.public_visibility_message_wrapper .public_visibility_logo:hover {
+  opacity: 0.9;
+}
+/*Modal window styles*/
+#Add_link .input_wrapper {
+  height: 30px;
+  margin: 10px 0px;
+}
+#Add_link .input_wrapper input {
+  float: left;
+  width: 360px;
+}
+#Add_link .input_wrapper label {
+  float: left;
+  margin-right: 10px;
+  line-height: 2;
+  margin-left: 20px;
+}
+#PageAlert {
+  position: fixed;
+  z-index: 100;
+  top: -3px;
+  left: 50%;
+  margin-left: -240px;
+  width: 480px;
+}
+#PageTopbar {
+  z-index: auto;
+  user-select: none;
+  -moz-user-select: none;
+  -khtml-user-select: none;
+}
+#PageTopbar #NetworkDropdown {
+  width: 159px;
+}
+#PageTopbar #NetworkDropdown #current-class-title {
+  margin-top: 6px;
+}
+#PageTopbar #NetworkDropdown .course-number-arrow {
+  top: 12px;
+}
+/*Modals*/
+.add_link_modal label {
+  float: left;
+  line-height: 2.2;
+  margin-right: 15px;
+}
+.add_link_modal input {
+  width: 400px;
+}
+/*Announcements*/
+.section_announcements .announcement_actions {
+  float: right;
+}
+.section_announcements .announcement_header {
+  width: 100%;
+}
+.section_announcements .dot {
+  margin: 0px 10px;
+}
+.section_announcements .announcement.long .announcement_text {
+  max-height: 90px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  word-wrap: break-word;
+}
+.section_announcements .announcement.short .announcement_text {
+  max-height: auto;
+  word-wrap: break-word;
+}
+.section_announcements .announcement.short .view_more {
+  display: none;
+}
+.section_announcements .announcement.long .view_more {
+  display: inline-block;
+}
+.section_announcements .announcement.short .view_less {
+  display: none;
+}
+.section_announcements .announcement.long .view_less {
+  display: none;
+}
+.section_announcements .announcement.short .dot {
+  display: none;
+}
+.section_announcements .announcement.long .dot {
+  display: inline-block;
+}
+.section_announcements .announcement.make_long .dot {
+  display: inline-block;
+}
+.section_announcements .announcement.make_long .view_more {
+  display: none;
+}
+.section_announcements .announcement.make_long .view_less {
+  display: inline-block;
+}
+.section_announcements .announcement.make_short .dot {
+  display: inline-block;
+}
+.section_announcements .announcement.make_short .view_more {
+  display: inline-block;
+}
+.section_announcements .announcement.make_short .view_less {
+  display: none;
+}
+.section_announcements .announcement.make_short .announcement_text {
+  max-height: 90px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  word-wrap: break-word;
+}
+.section_announcements .announcement.make_long .announcement_text {
+  max-height: auto;
+  word-wrap: break-word;
+}
+.section_announcements .show_announcements {
+  font-size: 16px;
+  line-height: 2.4;
+  margin-left: 15px;
+}
+.section_announcements .show_announcements.hide {
+  display: none;
+}
+.section_announcements .show_announcements.hidden {
+  display: none;
+}
+#class_sections ul {
+  margin-top: 20px;
+}
+#class_sections ul li {
+  margin: 4px 0px;
+}
+#class_sections ul li .section_title {
+  font-size: 13px;
+}
+#class_sections ul li .section_meta {
+  font-size: 11px;
+  color: #a9a9a9;
+}
+#class_sections ul li .section_link {
+  margin-left: 25px;
+}
+#course_information table .span3 {
+  vertical-align: top;
+  float: left;
+  width: 460px;
+}
+#course_information table .span3.header_text .view {
+  margin-bottom: 3px;
+}
+#course_information table .span3.body_text .view {
+  margin-bottom: 10px;
+}
+#course_information table .span2 {
+  width: 98%;
+}
+#course_information table .general_information_remove {
+  float: left;
+  margin-bottom: 20px;
+}
+#Page {
+  display: none;
+  margin-top: 0px;
+  padding-top: 44px;
+  /*.tutorial { display: none; }*/
+  /*.save { display: none; }*/
+  /*.saving .save { display: block; }*/
+  /*.saving .view { display: none; }*/
+  /*.saving .edit { display: none; }*/
+}
+#Page.no_instructors {
+  margin-top: 70px;
+}
+#Page .hide {
+  display: none !important;
+}
+#Page .req_inst {
+  display: none;
+}
+#Page.is_inst .req_inst {
+  display: block;
+}
+#Page.is_inst .req_student {
+  display: none;
+}
+#Page .edit {
+  display: none;
+}
+#Page .editing .edit {
+  display: block;
+}
+#Page .editing .edit.span2 {
+  text-align: right;
+}
+#Page .editing .view {
+  display: none;
+}
+#Page .editing .save {
+  display: none;
+}
+#Page .no_inst_message_wrapper {
+  padding: 10px 0px;
+  font-weight: bold;
+  background: #F7AE2B;
+  font-family: 'Lucida Grande', Lucida, Arial, sans-serif;
+  font-size: 12px;
+  position: absolute;
+  width: 100%;
+  z-index: 1000;
+  cursor: pointer;
+}
+#Page .no_inst_message_wrapper .no_inst_message {
+  width: 440px;
+  margin: 0px auto;
+}
+#Page .no_inst_message_wrapper .no_inst_message a {
+  color: white;
+  text-shadow: 1px 1px 0px #c60;
+}
+#Page .no_inst_message_wrapper .no_inst_message a:hover {
+  color: #FEF7EA;
+}
+#Page #header {
+  padding: 10px 0;
+  margin-bottom: 10px;
+  background-color: #f5f5f5;
+  border-bottom: 1px solid #E1E1E1;
+}
+#Page #header.no_inst {
+  margin-top: 25px;
+}
+#Page #header h1 {
+  margin-bottom: 0;
+  font-size: 32px;
+  line-height: 1;
+  letter-spacing: 0px;
+  float: left;
+}
+#Page #header p {
+  font-size: 16px;
+  font-weight: 200;
+  line-height: 1.5;
+  margin-bottom: 0;
+}
+#Page #course_information .header {
+  margin-bottom: 10px;
+}
+#Page #course_information .section {
+  margin-bottom: 30px;
+}
+#Page #course_information .section textarea {
+  width: 98%;
+  height: 400px;
+  resize: vertical;
+}
+#Page #course_information .section td textarea {
+  height: 40px;
+}
+#Page #course_information .label {
+  background: none;
+  color: #333;
+  font-weight: bold;
+  font-size: 14px;
+  text-transform: none;
+  padding-left: 0px;
+}
+#Page #course_information h2 {
+  font-size: 20px;
+  line-height: 26px;
+  font-weight: bold;
+  color: black;
+  margin-bottom: 5px;
+  display: inline;
+  text-transform: none;
+}
+#Page #resources h2 {
+  font-size: 20px;
+  line-height: 26px;
+  font-weight: bold;
+  color: black;
+  margin-bottom: 5px;
+  display: inline;
+  text-transform: none;
+  float: left;
+}
+#Page #resources table.options_table {
+  margin-bottom: 10px;
+}
+#Page #homepage_stats {
+  height: 30px;
+}
+#Page #homepage_stats .stats {
+  float: left;
+  padding: 9px 18px 0px 0px;
+  font-size: 15px;
+}
+#Page #homepage_stats .stats .stats_icon {
+  background: url(../../images/splash/course-page-resources-icon.png) left top no-repeat;
+  width: 16px;
+  height: 16px;
+  float: left;
+  margin-right: 5px;
+}
+#Page #homepage_stats .stats .stats_icon.no_posts {
+  background-position: left top;
+}
+#Page #homepage_stats .stats .stats_icon.no_students {
+  background-position: right top;
+}
+#Page #homepage_stats .stats .stats_title {
+  color: #666;
+  float: left;
+}
+#Page #homepage_stats .stats .stats_title span {
+  color: #333;
+  font-weight: bold;
+}
+#Page #homepage_stats .stats .stats_divider {
+  border-right: 1px solid #999;
+  height: 16px;
+  width: 2px;
+  float: left;
+  margin-left: 15px;
+}
+#Page #syllabus {
+  margin-top: 10px;
+  margin-bottom: 0px;
+  float: left;
+  clear: left;
+}
+#Page .progress_text {
+  background-image: url(../../images/ajax-loader.gif);
+  background-position: 10px center;
+  padding-left: 35px;
+}
+#Page .options_table.table th {
+  vertical-align: top;
+}
+#Page .options_table.table input[type="image"],
+#Page input[type="checkbox"],
+#Page input[type="radio"] {
+  margin-left: 30px;
+}
+#Page .reorder_resource {
+  margin: 6px;
+  width: 16px;
+  height: 16px;
+  float: right;
+  background: url('/images/course_homepage/drag_drop_icon.png') left top;
+  cursor: pointer;
+}
+#Page .reorder_resource_disabled {
+  margin: 6px;
+  width: 16px;
+  height: 16px;
+  float: right;
+  opacity: 0.2;
+  background: url('/images/course_homepage/drag_drop_icon.png') left top;
+}
+#Page .resources_section {
+  border-bottom: 1px solid #eee;
+  margin: 0px 0 35px 0;
+  padding-bottom: 55px;
+  position: relative;
+  overflow: auto;
+}
+#Page .resources_section:last-of-type {
+  border-bottom: 0px;
+}
+#Page .resources_section .resource_row .resource_title {
+  color: #3D7CC8;
+}
+#Page .resources_section .resource_row .resource_title:hover {
+  text-decoration: underline;
+}
+#Page .resources_section .resource_pagination {
+  position: absolute;
+  left: 408px;
+}
+#Page .resources_section .resource_pagination .resource_pagination_numbers {
+  font-size: 14px;
+  font-weight: bold;
+  line-height: 25px;
+  width: 90px;
+}
+#Page .resources_section .resource_pagination .resource_pagination_toggles {
+  border: 1px solid #999;
+}
+#Page .resources_section .resource_pagination .resource_pagination_toggle {
+  background: #eee;
+  border: none;
+  font-size: 12px;
+  font-weight: 500;
+  opacity: 0.6;
+  outline: none;
+  width: 50%;
+}
+#Page .resources_section .resource_pagination .resource_pagination_toggle:first-of-type {
+  border-right: 1px solid #999;
+}
+#Page .resources_section .resource_pagination .resource_pagination_toggle:hover {
+  opacity: 1;
+}
+#Page .resources_section .resource_pagination .resource_pagination_toggle.disabled {
+  cursor: default;
+  opacity: 0.2;
+}
+#Page .resources_section .resource_show_all_footer {
+  box-shadow: 0 -1px 0 #ddd;
+}
+#Page .resources_section .resource_show_all_footer td {
+  border-top: 0px;
+  padding: 12px 8px;
+}
+#Page .resources_section .resource_show_all_footer a {
+  font-weight: normal;
+}
+#Page .resources_section .resource_show_all_footer .view_resources_link {
+  display: none;
+}
+#Page .resources_section .title_wrapper {
+  height: 30px;
+  position: relative;
+}
+#Page .resources_section .title_wrapper .number_of_resources_wrapper {
+  float: left;
+  color: #aaa;
+  font-size: 12px;
+  font-weight: 400;
+  margin-left: 10px;
+  margin-top: 8px;
+  display: none;
+}
+#Page .resources_section h1 {
+  margin-bottom: 10px;
+}
+#Page .resources_section .public_visibility {
+  color: #999;
+  font-size: 14px;
+  font-weight: normal;
+  margin-left: 5px;
+  display: inline;
+}
+#Page .resources_section table {
+  margin-top: 5px;
+  margin-bottom: 10px;
+  /*
+        tbody tr:hover td {
+            background-color: @linkColor;
+            color: white;
+            cursor: pointer;
+        }*/
+}
+#Page .resources_section table.not_has_date td.not_has_date {
+  display: none;
+}
+#Page .resources_section table th.title {
+  width: 370px;
+  width: 12032;
+}
+#Page .resources_section table th.date {
+  width: 2820;
+}
+#Page .resources_section table th.title.not_has_date {
+  width: 17860;
+}
+#Page .resources_section table th.actions {
+  width: 4700;
+  width: 215px;
+}
+#Page .resources_section .container_add {
+  position: relative;
+  display: inline-block;
+  float: right;
+}
+#Page .resources_section .container_add .btn-primary {
+  margin-right: 5px;
+  margin-top: 1px;
+}
+#Page .resources_section .section_view_links_wrapper {
+  float: left;
+  display: inline-block;
+}
+#Page .resources_section .section_view_links_wrapper .view_resources_link {
+  display: none;
+}
+#Page .resources_section .resource .edit {
+  display: none;
+}
+#Page .resources_section .resource.editing .edit {
+  display: block;
+}
+#Page .resources_section .resource.editing .view {
+  display: none;
+}
+#Page .resources_section .resource.editing td {
+  height: 37px;
+}
+#Page .resources_section .resource.message td {
+  height: 45px;
+}
+#Page .resources_section .resource.message.editing .announce_message {
+  display: none;
+}
+#Page .resources_section .resource.message .announce_message {
+  display: block;
+}
+#Page .resources_section .resource .announce_message {
+  display: none;
+}
+#Page .resources_section .resource .title_buttons {
+  display: none;
+}
+#Page .resources_section .resource .edit input.title {
+  width: 10340;
+}
+#Page .resources_section .resource .edit input.date {
+  width: 2820;
+}
+#Page .resources_section .resource .placeholder_date {
+  font-size: 12px;
+  color: #999;
+  padding: 2px;
+  border: 1px solid #DDD;
+  background: white;
+  text-align: center;
+  margin-top: 3px;
+}
+#Page .resources_section .resource.message .title {
+  max-width: 200px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-height: 25px;
+  white-space: nowrap;
+}
+#Page .resources_section .resource .title {
+  max-width: 350px;
+  float: left;
+  line-height: 2;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-height: 25px;
+  white-space: nowrap;
+}
+#Page .resources_section .resource .title a {
+  font-weight: bold;
+}
+#Page .resources_section .announce_message {
+  padding: 4px 6px;
+  background: #FBF7E4;
+  border: #FAEED6;
+  font-size: 12px;
+  color: #BF9752;
+  width: 307px;
+  float: right;
+}
+#PageWrapper {
+  min-height: 600px;
+}
+i.ajax_loader {
+  display: none;
+  background-image: url(../../images/ajax-loader.gif);
+  background-repeat: no-repeat;
+  width: 16px;
+  height: 16px;
+  vertical-align: text-top;
+}
+i.ajax_loader.active {
+  display: inline-block;
+}
+.resource i.ajax_loader {
+  float: right;
+  margin-right: 10px;
+}
+.popover .btn.yes {
+  margin-right: 20px;
+}
+.btn.right {
+  float: right;
+  margin-top: 4px;
+}
+.instructors img {
+  max-width: 60px;
+}
+table.tablesorter thead tr th {
+  background-position: center right;
+  padding-right: 20px;
+  background-repeat: no-repeat;
+}
+table.tablesorter thead tr th.headerSortUp {
+  background-image: url(../plugins/tablesorter/asc.gif);
+}
+table.tablesorter thead tr th.headerSortDown {
+  background-image: url(../plugins/tablesorter/desc.gif);
+}
+/* project groups styles */
+#PageCenter .subregion #teams .stacked div {
+  display: inline;
+  float: left;
+}
+#PageCenter .subregion #teams .stacked div.spacer {
+  margin: 7px 13px;
+}
+#PageCenter .subregion #teams .label {
+  margin-right: 3px;
+  background-color: #fafafa;
+  border: 1px solid #E9ECF3;
+  color: #666;
+}
+#PageCenter .subregion #teams p {
+  margin-bottom: 3px;
+  line-height: 17px;
+}
+#PageCenter .subregion #teams .respond,
+#PageCenter .subregion #teams .edit_post,
+#PageCenter .subregion #teams .new_post {
+  margin-top: 10px;
+  padding: 15px;
+  background: #E9ECF3;
+  display: none;
+  width: 598px;
+}
+#PageCenter .subregion #teams .respond input,
+#PageCenter .subregion #teams .edit_post input,
+#PageCenter .subregion #teams .new_post input {
+  color: #333;
+}
+#PageCenter .subregion #teams .respond .control-group,
+#PageCenter .subregion #teams .edit_post .control-group,
+#PageCenter .subregion #teams .new_post .control-group {
+  margin-bottom: 7px;
+}
+#PageCenter .subregion #teams .respond .control-label,
+#PageCenter .subregion #teams .edit_post .control-label,
+#PageCenter .subregion #teams .new_post .control-label {
+  font-weight: bold;
+  width: 120px;
+  padding-right: 7px;
+}
+#PageCenter .subregion #teams .respond .controls,
+#PageCenter .subregion #teams .edit_post .controls,
+#PageCenter .subregion #teams .new_post .controls,
+#PageCenter .subregion #teams .respond button.btn-primary,
+#PageCenter .subregion #teams .edit_post button.btn-primary,
+#PageCenter .subregion #teams .new_post button.btn-primary {
+  margin-left: 127px;
+}
+#PageCenter .subregion #teams .respond label[for="sought_team"],
+#PageCenter .subregion #teams .edit_post label[for="sought_team"],
+#PageCenter .subregion #teams .new_post label[for="sought_team"] {
+  display: inline-block;
+  padding: 5px;
+  font-weight: bold;
+}
+#PageCenter .subregion #teams .respond label[for="sought_team"].alone,
+#PageCenter .subregion #teams .edit_post label[for="sought_team"].alone,
+#PageCenter .subregion #teams .new_post label[for="sought_team"].alone {
+  background: #F6F6F6;
+  border: 1px solid #E6E6E6;
+}
+#PageCenter .subregion #teams table {
+  margin-top: 10px;
+  width: 100%;
+}
+#PageCenter .subregion #teams table tr {
+  vertical-align: top;
+  text-align: center;
+  border: 3px solid #E9ECF3;
+  border-width: 0 0 3px 0;
+}
+#PageCenter .subregion #teams table tr.closed {
+  color: #999;
+}
+#PageCenter .subregion #teams table td {
+  padding: 10px 0;
+}
+#PageCenter .subregion #teams table th {
+  padding: 3px 0;
+}
+#PageCenter .subregion #teams table .header {
+  background: #E9ECF3;
+  border-bottom: 0;
+}
+#PageCenter .subregion #teams table .header.headerSortUp div {
+  background: white;
+}
+#PageCenter .subregion #teams table .header.headerSortUp div:hover .caret {
+  border-bottom: 4px solid black;
+  border-top: 0px;
+}
+#PageCenter .subregion #teams table .header.headerSortUp div .caret {
+  border-bottom: 4px solid black;
+  border-top: 0px;
+}
+#PageCenter .subregion #teams table .header.headerSortDown div {
+  background: white;
+}
+#PageCenter .subregion #teams table .header.headerSortDown div:hover .caret {
+  border-top: 4px solid black;
+  border-bottom: 0px;
+}
+#PageCenter .subregion #teams table .header.headerSortDown div .caret {
+  border-top: 4px solid black;
+  border-bottom: 0px;
+}
+#PageCenter .subregion #teams table .header div {
+  width: 30px;
+  height: 30px;
+  border-radius: 4px;
+  background: transparent;
+  margin: 0 auto;
+  cursor: pointer;
+  box-shadow: 0 0 2px #bbb;
+}
+#PageCenter .subregion #teams table .header div:hover {
+  background: darkGray;
+}
+#PageCenter .subregion #teams table .header div:hover .caret {
+  border-top: 4px solid black;
+  border-bottom: 0px;
+}
+#PageCenter .subregion #teams table .header div:active {
+  box-shadow: 0 0 3px #999;
+}
+#PageCenter .subregion #teams table .header div .caret {
+  margin-top: 13px;
+  border-top: 4px solid #999;
+}
+#PageCenter .subregion #teams table .top_buttons .btn {
+  display: none;
+  float: right;
+  margin: 0 0 12px 12px;
+}
+#PageCenter .subregion #teams table .top_buttons .btn.display {
+  display: block;
+}
+#PageCenter .subregion #teams table .status div {
+  width: 13px;
+  height: 13px;
+  margin: 5px auto 0;
+}
+#PageCenter .subregion #teams table .status .open {
+  text-indent: -9999px;
+  webkit-border-radius: 50%;
+  moz-border-radius: 50%;
+  border-radius: 50%;
+  background: transparent;
+  border: 3px solid #090;
+}
+#PageCenter .subregion #teams table .status .closed {
+  opacity: .5;
+}
+#PageCenter .subregion #teams table .status .closed i {
+  text-indent: -9999px;
+}
+#PageCenter .subregion #teams table .date {
+  width: 50px;
+  padding-top: 15px;
+}
+#PageCenter .subregion #teams table .status {
+  width: 36px;
+}
+#PageCenter .subregion #teams table .seekers,
+#PageCenter .subregion #teams table .sought {
+  font-size: 27px;
+  font-weight: bold;
+  width: 60px;
+}
+#PageCenter .subregion #teams table .seekers .sub,
+#PageCenter .subregion #teams table .sought .sub {
+  font-size: 12px;
+  font-weight: normal;
+}
+#PageCenter .subregion #teams table .lookingfor {
+  font-style: italic;
+  padding-top: 15px;
+}
+#PageCenter .subregion #teams table .info {
+  text-align: left;
+  width: 70%;
+  padding: 7px 15px;
+}
+#PageCenter .subregion #teams table .info .closed_alert {
+  display: none;
+}
+#PageCenter .subregion #teams table .info .edit_status {
+  margin-bottom: 0;
+}
+#PageCenter .subregion #teams table .info .edit_status .control-group {
+  margin-bottom: 0;
+}
+#PageCenter .subregion #teams table .info .edit_post_btn {
+  margin: 0 0 18px 0;
+}
+#PageCenter .subregion #teams table .info .label-holder {
+  width: 120px;
+  text-align: right;
+  float: left;
+}
+#PageCenter .subregion #teams table .info .expandable {
+  margin-bottom: 10px;
+}
+#PageCenter .subregion #teams table .info .respond_btn {
+  margin-right: 6px;
+}
+#PageCenter .subregion #teams table .info .responses {
+  display: block;
+  margin-top: 10px;
+}
+#PageCenter .subregion #teams table .info .responses .response {
+  margin: 5px 0;
+  background: #E9ECF3;
+  padding: 10px;
+}
+#PageCenter .subregion #teams table .info .responses .response .delete {
+  margin: 0 0 12px 12px;
+  float: right;
+}
+#PageCenter .subregion #teams table .info .responses .response .headline {
+  margin-bottom: 7px;
+  font-size: 14px;
+}
+#PageCenter .subregion #teams table .info .responses .response p {
+  padding-left: 120px;
+}
+#PageCenter .subregion #teams table .info .responses .response .optional {
+  margin-bottom: 9px;
+}
+#PageCenter .subregion #teams table .info .read-less {
+  display: inline-block;
+  margin-bottom: 10px;
+}
+#PageCenter .subregion #teams table .info .single p {
+  padding-top: 20px;
+  color: #666;
+}

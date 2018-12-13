@@ -1,0 +1,2 @@
+var Instructor = Spine.Model.sub();
+Instructor.configure("Instructor", "id", "email", "name", "office_hours", "img");

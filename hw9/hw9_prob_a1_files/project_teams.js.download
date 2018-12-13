@@ -1,0 +1,1074 @@
+//project team formation functions
+//(not even going to attempt integrating into the above stuff, for all of our sakes.)
+
+//email checking function
+function isValidEmailAddress(emailAddress) {
+    var pattern = new RegExp(/^((([a-z]|\d|[!#\$%&'\*\+\-\/=\?\^_`{\|}~]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])+(\.([a-z]|\d|[!#\$%&'\*\+\-\/=\?\^_`{\|}~]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])+)*)|((\x22)((((\x20|\x09)*(\x0d\x0a))?(\x20|\x09)+)?(([\x01-\x08\x0b\x0c\x0e-\x1f\x7f]|\x21|[\x23-\x5b]|[\x5d-\x7e]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(\\([\x01-\x09\x0b\x0c\x0d-\x7f]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF]))))*(((\x20|\x09)*(\x0d\x0a))?(\x20|\x09)+)?(\x22)))@((([a-z]|\d|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(([a-z]|\d|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])([a-z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])*([a-z]|\d|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])))\.)+(([a-z]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(([a-z]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])([a-z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])*([a-z]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])))\.?$/i);
+    return pattern.test(emailAddress);
+};
+
+//name checking function
+function isValidName(theName) {
+	//letters and spaces only, 2-30 characters
+	var pattern = new RegExp(/^[A-Za-z '-\.]{2,30}$/);
+	return pattern.test(theName);
+}
+
+//today's date mm/dd/yy
+function displayDate(){
+	var fullDate = new Date()
+	var theMonth = fullDate.getMonth()+1;
+	var theYear = fullDate.getFullYear()+'';
+	theYear = theYear.substr(2);
+
+	var currentDate = theMonth + "/" + fullDate.getDate() + "/" + theYear;
+	return currentDate;
+}
+
+//append "student" or "students" to .seekers/.sought div
+function doPlurals() {
+	$('.seekers, .sought').each(function(){
+		var num = $(this).text();
+		if (/\d/.test(num)) {
+			num = num.match(/\d/g);
+			num = num.join("");
+
+	  		var plural = (num > 1) ? 's' : '';
+
+	  		var theHTML = '<br/><span class="sub">student'+plural+'</span>';
+	  		if ($(this).text().indexOf('student') < 0) $(this).append(theHTML);
+	  	} else {
+	  		$(this).css('font-size','17px');
+	  		$(this).css('text-transform','uppercase');
+	  	}
+	});
+	return false;
+}
+
+//open/close posting
+function togglePostState(theForm) {
+	//check the current value of 'post_status'
+	var theStatus = $(theForm).find('input[type="radio"]:checked').val();
+
+	// tell backend about updated status
+	var groupId = $(theForm).closest('tr').attr("id").substr(6); // id is prefixed with group- to assure id uniqueness	
+    PA.call_pj("network.update_group_status", {group_id : groupId, status : ((theStatus == "inactive") ? 0 : 1) }, null,
+    function (data) {
+    }, function (err) {
+        alert(err);
+    });
+
+	//if it's open, close it
+	if (theStatus == "inactive") {
+		$(theForm).closest('tr').addClass('closed').find('td.status').html('<div class="closed"><i class="icon-ok">0</i></div>');
+		//show the "this search is closed" alert box
+		$(theForm).parent().after('<div class="alert closed_alert" style="display:block;">This search is closed.</div>');
+		//hide edit button
+		//$(theForm).closest('.info').find('.edit_post_btn').hide();
+	//otherwise, open it
+	} else {
+		$(theForm).closest('tr').removeClass('closed').find('td.status').html('<div class="open">1</div>');
+		//remove the "this search is closed" alert box
+		$(theForm).closest('.info').find('.closed_alert').remove();
+		//show edit
+		//$(theForm).closest('.info').find('.edit_post_btn').show();
+	}
+
+	//refresh the table
+	$('#teams table').trigger("update"); 
+}
+
+//clicking on show responses toggles the text as well as the div visibility
+function toggleResponses(theButton) {
+	$(theButton).parent().find('.responses').toggle();
+	var theSpan = $(theButton).find('span');
+	if (theSpan.text() == 'show') theSpan.text('hide');
+	else theSpan.text('show');
+	return false;
+}
+
+
+/*
+
+the edit stuff is kind of a mess. i tried my best but think the best way to do it would be to generate the fields based on what's in the database, not based on complicated parsing...
+
+//edit a post
+function editPost(theButton) {
+	alert('something is happening');
+	var theData = $(theButton).closest('.info').find('.expandable');
+
+	//figure out if it's a group or individual post
+	var isGroupPost = $(theButton).closest('tr').find('.seekers').text();
+	if (/\d/.test(isGroupPost)) {
+		isGroupPost = isGroupPost.match(/\d/g);
+		isGroupPost = isGroupPost.join("");
+		if (isGroupPost == 1) isGroupPost = false;
+		else isGroupPost = true;
+	} else isGroupPost = true;
+
+	//grab all the values
+	//THIS SHOULD GRAB THE VALUES FROM THE DATABASE!!!
+
+	//display the right form fields and pre-populate ones we have values for
+}
+
+//save edits to post
+function savePostEdits(theButton) {
+	var theForm = $(theButton).closest('form');
+	var errorCount = 0;
+
+	//clear any error text/get rid of "error" classes
+	theForm.find('.help-inline').remove();
+	theForm.find('.error').removeClass('error');
+
+	//validate the name & email fields
+	var theEmail = theForm.find('.edit_email').val();
+	var theName = theForm.find('.edit_name').val();
+
+	if (!isValidEmailAddress(theEmail)) {
+		theForm.find('.edit_email').parent().addClass('error').append('<span class="help-inline">Please enter a valid email</span>');
+		errorCount++;
+	}
+	if (!isValidName(theName)) {
+		theForm.find('.edit_name').parent().addClass('error').append('<span class="help-inline">Please enter a valid name</span>');
+		errorCount++;
+	}
+
+	//grab the date
+	var theDate = displayDate();
+
+	//see if we're submitting a group or individual post
+	var seekingGroup = $(theButton).closest('tr').find('.seekers').text();
+	if (/\d/.test(seekingGroup)) {
+		seekingGroup = seekingGroup.match(/\d/g);
+		seekingGroup = seekingGroup.join("");
+		if (seekingGroup == 1) seekingGroup = false;
+		else seekingGroup = true;
+	} else seekingGroup = true;
+
+	//validate the right "about" field based on group or individual
+	if (!seekingGroup) { 
+		if (theForm.find('.edit_aboutus').val().length < 10) {
+			$('.edit_aboutus').parent().addClass('error').append('<span class="help-inline">Please enter a little bit about your team</span>');
+			errorCount++;
+		}
+	} else {
+		if (theForm.find('.edit_aboutme').val().length < 10) {
+			$('.edit_aboutme').parent().addClass('error').append('<span class="help-inline">Please enter a little bit about yourself</span>');
+			errorCount++;
+		}
+	}
+
+	//if we have errors, do not pass go. do not collect $200.
+	if (errorCount > 0) return false;
+
+	//we all good? good.	
+	//grab all the correct fields
+	var theAbout,theUGG,theLocation,theUGG,theMajor,theProgram,theSkills,theTeammates,theWork,theProjects,theAvailability,theEtc;
+
+	theLocation = (seekingGroup ? theForm.find('.edit_mlocation').val() : theForm.find('.edit_olocation').val());
+	if (seekingGroup) {
+		theAbout = theForm.find('.edit_aboutme').val();
+		theUGG = (theForm.find('[name="edit_program"]').val() == 'grad' ? 'Graduate Student' : 'Undergraduate');
+		theMajor = theForm.find('.edit_major').val();
+		theProgram = '';
+			if (theMajor.length && theUGG.length) theProgram = theMajor+' - '+theUGG;
+			else theProgram = theMajor+theUGG;
+		theSkills = theForm.find('.edit_skills').val();
+		theWork = theForm.find('.edit_work').val();
+		theProjects = theForm.find('.edit_projects').val();
+		theAvailability = theForm.find('.edit_availability').val();
+		theEtc = theForm.find('.edit_etc').val();
+	} else {
+		theAbout = theForm.find('.edit_aboutus').val();
+		theTeammates = theForm.find('.edit_teammates').val();
+	}
+
+	//populate the .expandable div
+	var theDiv = "";
+	theDiv += '<p>\
+					<span class="label label-info">Contact</span>\
+					<a href="LINKTOPROFILE">'+theName+'</a> - '+theEmail+'\
+				</p>';
+	if (theTeammates) theDiv += '<p>\
+					<span class="label label-info">Teammates</span>\
+					'+theTeammates+'\
+				</p>';
+	theDiv += '<p>\
+					<span class="label label-info">About</span>\
+					'+theAbout+'\
+				</p>';
+	if (theLocation) theDiv += '<p>\
+					<span class="label label-info">Location</span>\
+					'+theLocation+'\
+				</p>';
+	if (seekingGroup) {
+		if (theProgram) theDiv += '<p>\
+					<span class="label label-info">Program</span>\
+					'+theProgram+'\
+				</p>';
+		if (theSkills) theDiv += '<p>\
+					<span class="label label-info">Skills</span>\
+					'+theSkills+'\
+				</p>';
+		if (theWork) theDiv += '<p>\
+					<span class="label label-info">Work Experience</span>\
+					'+theWork+'\
+				</p>';
+		if (theProjects) theDiv += '<p>\
+					<span class="label label-info">Past Projects</span>\
+					'+theProjects+'\
+				</p>';
+		if (theAvailability) theDiv += '<p>\
+					<span class="label label-info">Availability</span>\
+					'+theAvailability+'\
+				</p>';
+		if (theEtc) theDiv += '<p>\
+					<span class="label label-info">Anything Else</span>\
+					'+theEtc+'\
+				</p>';
+	}
+
+	//prepend the row to the table & trigger a new sort (required for the plugin to recognize the new row)
+	theForm.closest('.info').find('.expandable').html(theDiv);
+
+	//to finish up, let's clear & hide the form & button
+	theForm.closest('.info').find('.edit_post').hide().find('input[type="text"]').each(function(){
+		$(this).val('');
+	});
+	window.scrollTo(0,0);
+	return false;
+}
+*/
+
+function showResponse(submitBtn, responseId) {
+	var theForm = $(submitBtn).closest('.form-horizontal');
+	var errorCount = 0;
+
+	//clear any error text/get rid of "error" classes
+	theForm.find('.help-inline').remove();
+	theForm.find('.error').removeClass('error');
+
+	//validate the name & email fields
+	var theEmail = theForm.find('.respond_email').val();
+	var theName = theForm.find('.respond_name').val();
+
+	if (!isValidEmailAddress(theEmail)) {
+		theForm.find('.respond_email').parent().addClass('error').append('<span class="help-inline">Please enter a valid email</span>');
+		errorCount++;
+	}
+	if (!isValidName(theName)) {
+		theForm.find('.respond_name').parent().addClass('error').append('<span class="help-inline">Please enter a valid name</span>');
+		errorCount++;
+	}
+
+	//figure out if it's a team or individual response (check the "sought" status)
+	var isGroupForm = theForm.closest('tr').find('.sought').text();	// == "team" ? 1 : 0;
+//no, we can't check "team" in the text - we consider any group size larger than 1 to be a team.
+ 	if (/\d/.test(isGroupForm)) {
+ 			isGroupForm = isGroupForm.match(/\d/g);
+ 			isGroupForm = isGroupForm.join("");
+ 	  		isGroupForm = (isGroupForm > 1) ? '1' : '0';
+ 	} else isGroupForm = 1;
+
+	//validate about field
+	if (isGroupForm == '1') {
+		if (theForm.find('.respond_aboutus').val().length < 10) {
+			theForm.find('.respond_aboutus').parent().addClass('error').append('<span class="help-inline">Please enter a bit more about your team</span>');
+			errorCount++;
+		}
+	} else {
+		if (theForm.find('.respond_aboutme').val().length < 10) {
+			theForm.find('.respond_aboutme').parent().addClass('error').append('<span class="help-inline">Please enter a bit more about yourself</span>');
+			errorCount++;
+		}
+	}
+
+	//break out if there are errors
+	if (errorCount > 0) return false;
+
+
+	//grab all the right fields
+	var theAboutMe,theAboutUs,theUGG,theMyLocation,theOurLocation,theUGG,theMajor,theProgram,theSkills,theTeammates,theWork,theProjects,theAvailability,theEtc;
+
+	if (isGroupForm == '0') {
+		theAboutMe = theForm.find('.respond_aboutme').val();
+		theMyLocation = theForm.find('.respond_mlocation').val();
+		if (theForm.find('.respond_grad').attr('checked')) {
+			theUGG = 'Graduate Student';
+		} else if (theForm.find('.respond_ugrad').attr('checked')) {
+			theUGG = 'Undergraduate';
+		} else {
+			theUGG = '';
+		}
+		//if ($('[name="respond_program"]:checked').val()) theUGG = ($('[name="respond_program"]:checked').val() == 'grad' ? 'Graduate Student' : 'Undergraduate');
+		//else theUGG = '';
+		theMajor = theForm.find('.respond_major').val();
+		theProgram = '';
+			if (theMajor.length && theUGG.length) theProgram = theMajor+' - '+theUGG;
+			else theProgram = theMajor+theUGG;
+		theSkills = theForm.find('.respond_skills').val();
+		theWork = theForm.find('.respond_work').val();
+		theProjects = theForm.find('.respond_projects').val();
+		theAvailability = theForm.find('.respond_availability').val();
+		theEtc = theForm.find('.respond_etc').val();
+	} else {
+		theAboutUs = theForm.find('.respond_aboutus').val();
+		theOurLocation = theForm.find('.respond_olocation').val();
+		theTeammates = theForm.find('.respond_teammates').val();
+	}
+
+	var userId = $(".user-id").attr("id");
+	var networkId = $(".network-id").attr("id");
+	
+	//otherwise, populate the response fields
+	//if it's a group post, do group response
+	var theHTML = "";
+	var theDeleteButtonHTML = '';
+	if (userId == responseId) {
+		theDeleteButtonHTML = '<button class="btn btn-danger delete" onclick="deleteResponse(this)">delete</button>';
+	}
+
+	if (isGroupForm == '1') {
+		theHTML += '<div class="response" id="response-' + responseId + '">' + theDeleteButtonHTML +
+						'<div class="label-holder"><span class="label label-info">Contact</span></div>\
+						<p>' +theName + ' - '+theEmail;
+		if (theTeammates) theHTML += '(Other students: '+theTeammates+'</p>';
+		else theHTML += '</p>';
+		if (theOurLocation) theHTML += '<div class="label-holder"><span class="label label-info">Location</span></div>\
+						<p>'+theOurLocation+'</p>';
+		if (theAboutUs) theHTML += '<div class="label-holder"><span class="label label-info">About</span></div>\
+						<p>'+theAboutUs+'</p>';
+		theHTML += '</div>';
+	//if it's an individual post, do individual response
+	} else {
+		theHTML += '<div class="response" id="response-' + responseId + '">' + theDeleteButtonHTML +
+						'<div class="label-holder"><span class="label label-info">Contact</span></div>\
+						<p>'+theName+' - '+theEmail+'</p>';
+		if (theMyLocation) theHTML += '<div class="label-holder"><span class="label label-info">My Location</span></div>\
+						<p>'+theMyLocation+'</p>';
+		if (theAboutMe) theHTML += '<div class="label-holder"><span class="label label-info">About Me</span></div>\
+						<p>'+theAboutMe+'</p>';
+		if (theAvailability) theHTML += '<div class="label-holder"><span class="label label-info">Availability</span></div>\
+						<p>'+theAvailability+'</p>';
+		if (theProgram) theHTML += '<div class="label-holder"><span class="label label-info">Program</span></div>\
+						<p>'+theProgram+'</p>';
+		if (theEtc) theHTML += '<div class="label-holder"><span class="label label-info">Project Idea/Topic</span></div>\
+						<p>'+theEtc+'</p>';
+		if (theSkills) theHTML += '<div class="label-holder"><span class="label label-info">Skills</span></div>\
+						<p>'+theSkills+'</p>';
+		if (theWork) theHTML += '<div class="label-holder"><span class="label label-info">Work Experience</span></div>\
+						<p>'+theWork+'</p>';
+		if (theProjects) theHTML += '<div class="label-holder"><span class="label label-info">Past Projects</span></div>\
+						<p>'+theProjects+'</p>';
+		theHTML += '</div>';
+	}
+
+	//prepend the response to the ".responses" div inside ".info", display that div
+	theForm.closest('.info').find('.responses').show().prepend(theHTML);
+
+	//hide the "respond" button
+	$(submitBtn).hide();
+
+	//increment the number of responses on the .toggle_responses button
+	var buttonText = theForm.closest('.info').find('.toggle_responses').text();
+	var buttonNum = buttonText.match(/\d/g);
+	if (!buttonNum) buttonNum = 0;
+	else buttonNum = buttonNum.join("");
+	buttonNum++;
+	var plural = '';
+	if (buttonNum > 1) plural = 's';
+	theForm.closest('.info').find('.toggle_responses').attr('disabled',false).html('<span>hide</span> '+buttonNum+' response'+plural);
+	if (buttonNum == 1) theForm.closest('.info').find('.toggle_responses').attr('onclick','toggleResponses(this)');
+
+	theForm.hide().find('input[type="text"]').each(function(){	//and, clear all fields..
+		if (!($(this).hasClass('.respond_name') || $(this).hasClass('.respond_email'))) $(this).val('');
+	});
+	theForm.parent().find('.toggle_responses').show();
+	return false;
+}
+
+//add a response to the post
+function doResponse(submitBtn) {
+	var theForm = $(submitBtn).closest('.form-horizontal');
+	var errorCount = 0;
+
+	//clear any error text/get rid of "error" classes
+	theForm.find('.help-inline').remove();
+	theForm.find('.error').removeClass('error');
+
+	//validate the name & email fields
+	var theEmail = theForm.find('.respond_email').val();
+	var theName = theForm.find('.respond_name').val();
+
+	if (!isValidEmailAddress(theEmail)) {
+		theForm.find('.respond_email').parent().addClass('error').append('<span class="help-inline">Please enter a valid email</span>');
+		errorCount++;
+	}
+	if (!isValidName(theName)) {
+		theForm.find('.respond_name').parent().addClass('error').append('<span class="help-inline">Please enter a valid name</span>');
+		errorCount++;
+	}
+
+	//figure out if it's a team or individual response (check the "sought" status)
+	var isGroupForm = theForm.closest('tr').find('.sought').text();	// == "team" ? 1 : 0;
+//no, we can't check "team" in the text - we consider any group size larger than 1 to be a team.
+ 	if (/\d/.test(isGroupForm)) {
+ 			isGroupForm = isGroupForm.match(/\d/g);
+ 			isGroupForm = isGroupForm.join("");
+ 	  		isGroupForm = (isGroupForm > 1) ? '1' : '0';
+ 	} else isGroupForm = 1;
+
+	//validate about field
+	if (isGroupForm == '1') {
+		if (theForm.find('.respond_aboutus').val().length < 10) {
+			theForm.find('.respond_aboutus').parent().addClass('error').append('<span class="help-inline">Please enter a bit more about your team</span>');
+			errorCount++;
+		}
+	} else {
+		if (theForm.find('.respond_aboutme').val().length < 10) {
+			theForm.find('.respond_aboutme').parent().addClass('error').append('<span class="help-inline">Please enter a bit more about yourself</span>');
+			errorCount++;
+		}
+	}
+
+	//break out if there are errors
+	if (errorCount > 0) return false;
+
+
+	//grab all the right fields
+	var theAboutMe, theAboutUs, theUGG,theMyLocation, theOurLocation, theUGG,theMajor,theProgram,theSkills,theTeammates,theWork,theProjects,theAvailability,theEtc;
+
+	if (isGroupForm == '0') {
+		theAboutMe = theForm.find('.respond_aboutme').val();
+		theMyLocation = theForm.find('.respond_mlocation').val();
+		if (theForm.find('.respond_grad').attr('checked')) {
+			theUGG = 'Graduate Student';
+		} else if (theForm.find('.respond_ugrad').attr('checked')) {
+			theUGG = 'Undergraduate';
+		} else {
+			theUGG = '';
+		}
+		//if (theForm.find('[name="respond_program"]:checked') == true) theUGG = (theForm.find('[name="respond_program"]:checked').val() == 'grad' ? 'Graduate Student' : 'Undergraduate');
+		//else theUGG = '';
+		theMajor = theForm.find('.respond_major').val();
+		theProgram = '';
+			if (theMajor.length && theUGG.length) theProgram = theMajor+' - '+theUGG;
+			else theProgram = theMajor+theUGG;
+		theSkills = theForm.find('.respond_skills').val();
+		theWork = theForm.find('.respond_work').val();
+		theProjects = theForm.find('.respond_projects').val();
+		theAvailability = theForm.find('.respond_availability').val();
+		theEtc = theForm.find('.respond_etc').val();
+	} else {
+		theAboutUs = theForm.find('.respond_aboutus').val();
+		theOurLocation = theForm.find('.respond_olocation').val();
+		theTeammates = theForm.find('.respond_teammates').val();
+	}
+
+	var groupId = $(theForm).closest('tr').attr("id").substr(6); // id is prefixed with group- to assure id uniqueness
+
+    var response = {
+    	name : theName, email : theEmail, 
+    	my_location : theMyLocation, our_location : theOurLocation,
+    	teammates : theTeammates, about_me : theAboutMe, about_us : theAboutUs, 
+    	program : theUGG, major: theMajor,
+    	skills : theSkills, work : theWork, past_projects : theProjects, 
+    	availability : theAvailability, additional_info : theEtc
+    };
+    
+    //see if we're adding a new post or just sending an email
+	var noPost = 0; // (theForm.find('.respond_nopost').attr('checked') ? 1 : 0);
+
+    PA.call_pj("network.add_response", {group_id : groupId, response : response, no_post : noPost}, null,
+	function (data) {
+    	//alert(data.response_id);
+    	showResponse(submitBtn, data.response_id);
+	}, function (err) {
+        alert(err);
+    });
+
+	return false;
+}
+
+//delete a response that you posted
+function unshowResponse(theButton) {
+	//display the respond button again
+	$(theButton).closest('.info').find('.btn_respond').show();
+
+	//change the text of the show/hide button
+	var buttonText = $(theButton).closest('.info').find('.toggle_responses').text();
+	var buttonNum = buttonText.match(/\d/g);
+	buttonNum = buttonNum.join("");
+	buttonNum--;
+	var plural = '';
+	if (buttonNum > 1) plural = 's';
+	if (buttonNum > 0) $(theButton).closest('.info').find('.toggle_responses').html('<span>hide</span> '+buttonNum+' response'+plural);
+	else { 
+		$(theButton).closest('.info').find('.toggle_responses').html('no responses...');
+		$(theButton).closest('.info').find('.toggle_responses').attr('disabled',true);
+	}
+	//show the respond button again
+	if (!$(theButton).closest('td').find('button.respond_btn')) $(theButton).closest('td').find('button.toggle_responses').before('<button class="btn btn-primary respond_btn">respond</button>');
+	else $(theButton).closest('td').find('button.respond_btn').show();
+
+	$(theButton).parent().remove();
+}
+
+function deleteResponse(theButton) {
+
+	var groupId = $(theButton).closest('tr').attr("id").substr(6); // id is prefixed with group- to assure id uniqueness
+	var responseId = $(theButton).closest('div').attr("id").substr(9); // id is prefixed with response- to assure id uniqueness
+
+    PA.call_pj("network.delete_response", {group_id : groupId, response_id : responseId}, null,
+    function (data) {
+        //alert(data);
+        unshowResponse(theButton);
+    }, function (err) {
+        alert(err);
+    });  
+}
+
+/////////////////////////////////////////////////////////////
+// updates local view with the new successfully created post
+/////////////////////////////////////////////////////////////
+function showNewPost(groupId) {
+	var theForm = $('#teams .form-horizontal.new_post');
+	var errorCount = 0;
+
+	//clear any error text/get rid of "error" classes
+	theForm.find('.help-inline').remove();
+	theForm.find('.error').removeClass('error');
+
+	//validate the name & email fields
+	var theEmail = theForm.find('#new_post_email').val();
+	var theName = theForm.find('#new_post_name').val();
+
+	if (!isValidEmailAddress(theEmail)) {
+		theForm.find('#new_post_email').parent().addClass('error').append('<span class="help-inline">Please enter a valid email</span>');
+		errorCount++;
+	}
+	if (!isValidName(theName)) {
+		theForm.find('#new_post_name').parent().addClass('error').append('<span class="help-inline">Please enter a valid name</span>');
+		errorCount++;
+	}
+
+	//grab the date
+	var theDate = displayDate();
+
+	//see if we're submitting a group or individual post
+	var seekingGroup = ($('#sought_team').attr('checked'));
+
+	//validate the right "about" field based on group or individual
+	if (!seekingGroup) { 
+		if (theForm.find('#new_post_aboutus').val().length < 10) {
+			$('#new_post_aboutus').parent().addClass('error').append('<span class="help-inline">Please enter a little bit about your team</span>');
+			errorCount++;
+		}
+	} else {
+		if (theForm.find('#new_post_aboutme').val().length < 10) {
+			$('#new_post_aboutme').parent().addClass('error').append('<span class="help-inline">Please enter a little bit about yourself</span>');
+			errorCount++;
+		}
+	}
+
+	//if we have errors, do not pass go. do not collect $200.
+	if (errorCount > 0) return false;
+
+	//we all good? good.	
+	//grab all the correct fields
+	var theAboutMe, theAboutUs, theUGG, theMyLocation, theOurLocation, theMajor, theProgram, theSkills, theTeammates, theWork, theProjects, theAvailability, theEtc;
+
+	if (seekingGroup) {
+		theAboutMe = theForm.find('#new_post_aboutme').val();
+		theMyLocation = theForm.find('#new_post_mlocation').val();
+		if ($('[name="new_post_program"]:checked').val()) theUGG = ($('[name="new_post_program"]:checked').val() == 'grad' ? 'Graduate Student' : 'Undergraduate');
+		else theUGG = '';
+		theMajor = theForm.find('#new_post_major').val();
+		theProgram = '';
+			if (theMajor.length && theUGG.length) theProgram = theMajor+' - '+theUGG;
+			else theProgram = theMajor+theUGG;
+		theSkills = theForm.find('#new_post_skills').val();
+		theWork = theForm.find('#new_post_work').val();
+		theProjects = theForm.find('#new_post_projects').val();
+		theAvailability = theForm.find('#new_post_availability').val();
+		theEtc = theForm.find('#new_post_etc').val();
+	} else {
+		theAboutUs = theForm.find('#new_post_aboutus').val();
+		theOurLocation = theForm.find('#new_post_olocation').val();
+		theTeammates = theForm.find('#new_post_teammates').val();
+	}
+
+	var userId = $(".user-id").attr("id");
+	var networkId = $(".network-id").attr("id");
+
+	//populate the row
+	var theTR = '<tr id="group-' + groupId + '">';
+	theTR += '<td class="date">'+theDate+'</td>';
+	theTR += '<td class="status"><div class="open">1</div></td>';
+	theTR += '<td class="seekers">'+$('#new_post_seekers').val()+'</td>';
+	theTR += '<td class="lookingfor">looking for</td>';
+	if (seekingGroup) theTR += '<td class="sought">team</td>';
+	else theTR += '<td class="sought">'+$('#new_post_sought_select').val();+'</td>';
+
+	theTR += '<td class="info">';
+	theTR += '<div class="alert">\
+				<div class="form-horizontal edit_status">\
+					<div class="control-group">\
+						<label class="control-label" style="font-weight:bold;font-size:16px;">Your search is:</label>\
+						<div class="controls" style="padding-top:5px;">\
+							<label style="float:left;margin-right:20px;">\
+				            	<input type="radio" name="post_status-'+groupId+'" id="" value="active" checked="">\
+				                Ongoing!\
+				            </label>\
+							<label style="float:left;">\
+				            	<input type="radio" name="post_status-'+groupId+'" id="" value="inactive">\
+				                Done. Mark as closed.\
+				            </label>\
+						</div>\
+					</div>\
+				</div>\
+			</div>';
+	//we're skipping the edit button for now
+	//theTR += '<button class="btn btn-large edit_post_btn btn-success" onclick="editPost(this);">edit your post</button>';
+
+	theTR += '<div class="expandable">\
+				<p>\
+					<span class="label label-info">Contact</span>\
+					' + theName + ' - ' + theEmail + '\
+				</p>';
+	if (theTeammates) theTR += '<p>\
+					<span class="label label-info">Teammates</span>\
+					'+theTeammates+'\
+				</p>';
+	if (theAboutMe) theTR += '<p>\
+					<span class="label label-info">About Me</span>\
+					'+theAboutMe+'\
+				</p>';
+	if (theAboutUs) theTR += '<p>\
+					<span class="label label-info">About</span>\
+					'+theAboutUs+'\
+				</p>';
+	if (theMyLocation) theTR += '<p>\
+					<span class="label label-info">My Location</span>\
+					'+theMyLocation+'\
+				</p>';
+	if (theOurLocation) theTR += '<p>\
+					<span class="label label-info">Location</span>\
+					'+theOurLocation+'\
+				</p>';
+	if (seekingGroup) {
+		if (theProgram) theTR += '<p>\
+					<span class="label label-info">Program</span>\
+					'+theProgram+'\
+				</p>';
+		if (theAvailability) theTR += '<p>\
+					<span class="label label-info">Availability</span>\
+					'+theAvailability+'\
+				</p>';
+		if (theEtc) theTR += '<p>\
+					<span class="label label-info">Project Idea/Topic</span>\
+					'+theEtc+'\
+				</p>';
+		if (theSkills) theTR += '<p>\
+					<span class="label label-info">Skills</span>\
+					'+theSkills+'\
+				</p>';
+		if (theWork) theTR += '<p>\
+					<span class="label label-info">Work Experience</span>\
+					'+theWork+'\
+				</p>';
+		if (theProjects) theTR += '<p>\
+					<span class="label label-info">Past Projects</span>\
+					'+theProjects+'\
+				</p>';
+	}
+	theTR += "</div>"
+
+	//add the edit form - SKIPPING FOR NOW
+/*
+	theTR += '<form class="form-horizontal edit_post">\
+				<fieldset>\
+      				<div class="control-group">\
+						<label class="control-label" for="" value="'+theName+'">Name</label>\
+						<input type="text" class="input-medium" id="GENERATE">\
+		            </div>\
+      				<div class="control-group">\
+						<label class="control-label" for="" value="'+theEmail+'">Email</label>\
+						<input type="text" class="input-medium" id="GENERATE">\
+					</div>';
+	if (!seekingGroup) theTR += '<div class="control-group multi">\
+						<label class="control-label" for="" value="'+theTeammates+'">Teammates</label>\
+						<input type="text" class="input-medium" id="GENERATE">\
+					</div>\
+      				<div class="control-group multi">\
+						<label class="control-label" for="" value="'+theLocation+'">Our Location</label>\
+						<input type="text" class="input-medium" id="GENERATE" placeholder="e.g. On or Off Campus">\
+					</div>\
+      				<div class="control-group multi">\
+						<label class="control-label" for="" value="'+theName+'">About Us</label>\
+						<input type="text" class="input-xlarge" id="GENERATE" style="width:400px;" placeholder="Introduce yourselves. What kind of teammate(s) are you looking for?">\
+					</div>';
+	else theTR += '<div class="control-group single">\
+						<label class="control-label" for="" value="'+theLocation+'">My Location</label>\
+						<input type="text" class="input-medium" id="GENERATE" placeholder="i.e. Dorm or City">\
+					</div>\
+      				<div class="control-group single">\
+						<label class="control-label" for="" value="'+theAbout+'">About Me</label>\
+						<input type="text" class="input-xlarge" id="GENERATE" style="width:400px;" placeholder="Introduce yourself. What kind of teammate(s) are you looking for?">\
+					</div>\
+		            <div class="addn_info single">\
+			            <p><em><strong>Additional Information - About You</strong> (all optional!)</em></p>\
+						<div class="controls">\
+							<label style="float:left;margin-right:20px;">\
+				            	<input type="radio" name="" id="GENERATE" value="" '+(theUGG == "grad") ? "checked" : ""+'>\
+				                Graduate Student\
+				            </label>\
+							<label style="float:left;">\
+				            	<input type="radio" name="" id="GENERATE" value="" '+(theUGG == "grad") ? "" : "checked"+'>\
+				                Undergraduate Student\
+				            </label>\
+						</div>\
+						<div style="clear:both;height:6px;"></div>\
+          				<div class="control-group">\
+							<label class="control-label" for="" value="'+theMajor+'">Major/Dept</label>\
+							<input type="text" class="input-xlarge" id="GENERATE">\
+						</div>\
+          				<div class="control-group">\
+							<label class="control-label" for="" value="'+theSkills+'">Technical Skills</label>\
+							<input type="text" class="input-xlarge" id="GENERATE">\
+						</div>\
+          				<div class="control-group">\
+							<label class="control-label" for="" value="'+theWork+'">Work Experience</label>\
+							<input type="text" class="input-xlarge" id="GENERATE">\
+						</div>\
+          				<div class="control-group">\
+							<label class="control-label" for="" value="'+theProjects+'">Past Projects</label>\
+							<input type="text" class="input-xlarge" id="GENERATE">\
+						</div>\
+          				<div class="control-group">\
+							<label class="control-label" for="" value="'+theAvailability+'">My Availability</label>\
+							<input type="text" class="input-xlarge" id="GENERATE">\
+						</div>\
+          				<div class="control-group">\
+							<label class="control-label" for="" value="'+theEtc+'">Anything Else...</label>\
+							<input type="text" class="input-xlarge" id="GENERATE">\
+						</div>';
+	theTR += '</div>\
+				</fieldset>\
+				<button type="submit" class="btn btn-primary">Save</button>\
+        		<button class="btn">Cancel</button>\
+			</form>';
+*/
+
+
+	//add a view responses button, but disable it because there won't be any responses yet
+	theTR += '<button class="btn toggle_responses" disabled>no responses yet...</button>';
+
+	//add placeholder for responses
+	theTR += '<div class="responses"></div>';
+
+	//prepend the row to the table & trigger a new sort (required for the plugin to recognize the new row)
+	$('#teams table tbody').prepend(theTR);
+	$('#teams table').trigger("update"); 
+
+	doPlurals();
+
+	//to finish up, let's clear & hide the form & button
+	$('.new_post').hide().find('input[type="text"]').each(function(){
+		if (!($(this).attr('id') == 'new_post_name') && !($(this).attr('id') == 'new_post_email')) $(this).val('');
+	});
+	$('#post-table').removeClass("invisible");
+	$('.new_post_btn').show();
+	window.scrollTo(0,0);
+	return false;
+}
+
+////////////////////////////
+//submit function - new post
+////////////////////////////
+function addNewPost() {
+	var theForm = $('#teams .form-horizontal.new_post');
+	var errorCount = 0;
+
+	//clear any error text/get rid of "error" classes
+	theForm.find('.help-inline').remove();
+	theForm.find('.error').removeClass('error');
+
+	//validate the name & email fields
+	var theEmail = theForm.find('#new_post_email').val();
+	var theName = theForm.find('#new_post_name').val();
+
+	if (!isValidEmailAddress(theEmail)) {
+		theForm.find('#new_post_email').parent().addClass('error').append('<span class="help-inline">Please enter a valid email</span>');
+		errorCount++;
+	}
+	if (!isValidName(theName)) {
+		theForm.find('#new_post_name').parent().addClass('error').append('<span class="help-inline">Please enter a valid name</span>');
+		errorCount++;
+	}
+
+	//grab the date
+	var theDate = displayDate();
+
+	//see if we're submitting a group or individual post
+	var seekingGroup = ($('#sought_team').attr('checked'));
+
+	//validate the right "about" field based on group or individual
+	if (!seekingGroup) { 
+		if ($('#new_post_aboutus').val().length < 10) {
+			$('#new_post_aboutus').parent().addClass('error').append('<span class="help-inline">Please enter a little bit about your team</span>');
+			errorCount++;
+		}
+	} else {
+		if ($('#new_post_aboutme').val().length < 10) {
+			$('#new_post_aboutme').parent().addClass('error').append('<span class="help-inline">Please enter a little bit about yourself</span>');
+			errorCount++;
+		}
+	}
+
+	//if we have errors, do not pass go. do not collect $200.
+	if (errorCount > 0) return false;
+
+	//we all good? good.	
+	//grab all the correct fields
+	var theAboutMe, theAboutUs, theUGG, theMyLocation, theOurLocation, theMajor, theProgram, theSkills, theTeammates, theWork, theProjects, theAvailability, theEtc;
+
+	if (seekingGroup) {
+		theAboutMe = theForm.find('#new_post_aboutme').val();
+		theMyLocation = theForm.find('#new_post_mlocation').val();
+		if ($('[name="new_post_program"]:checked').val()) theUGG = ($('[name="new_post_program"]:checked').val() == 'grad' ? 'Graduate Student' : 'Undergraduate');
+		else theUGG = '';
+		theMajor = theForm.find('#new_post_major').val();
+		theProgram = '';
+			if (theMajor.length && theUGG.length) theProgram = theMajor+' - '+theUGG;
+			else theProgram = theMajor+theUGG;
+		theSkills = theForm.find('#new_post_skills').val();
+		theWork = theForm.find('#new_post_work').val();
+		theProjects = theForm.find('#new_post_projects').val();
+		theAvailability = theForm.find('#new_post_availability').val();
+		theEtc = theForm.find('#new_post_etc').val();
+	} else {
+		theAboutUs = theForm.find('#new_post_aboutus').val();
+		theOurLocation = theForm.find('#new_post_olocation').val();
+		theTeammates = theForm.find('#new_post_teammates').val();
+	}
+
+	var theStatus = 1; // open (1), closed (0)
+	var theSeekers = $("#new_post_seekers").val();
+	var theSought;
+	if (seekingGroup) {
+		theSought = "team";
+	} else {
+		theSought = $("#new_post_sought_select").val();
+	}
+
+    var group = {
+    	status : theStatus, seekers : theSeekers, sought : theSought,
+    	name : theName, email : theEmail, teammates : theTeammates,
+    	my_location: theMyLocation, our_location : theOurLocation,
+    	about_me : theAboutMe, about_us : theAboutUs,
+    	program : theUGG, major : theMajor,
+    	skills : theSkills, work : theWork, past_projects : theProjects,
+    	availability : theAvailability, additional_info : theEtc
+    };
+
+	var networkId = $(".network-id").attr("id");
+
+    PA.call_pj("network.add_group", {network_id : networkId, group : group}, null,
+    function (data) {
+        //alert(data.group_id);
+        showNewPost(data.group_id);
+    }, function (err) {
+        alert(err);
+    });
+    
+    return false;
+}
+
+
+$(document).ready(function() {
+
+	//tooltips for sorting columns
+	$('#teams table th div').tooltip();
+
+  	// sort business
+	$('#teams table').tablesorter({ 
+        // disable sorting for 4th and 6th columns ('looking for' and main content box) 
+        sortList: [[0,1]],
+        headers: { 
+            3: { sorter: false }, 
+            5: { sorter: false } 
+        } 
+    });
+
+	// Disabling jQuery expander features
+	// read more/read less links in project teams
+	// $('div.expandable').expander({
+	//   expandEffect: 'show',
+	//   expandSpeed: 0,
+	//   collapseEffect: 'hide',
+	//   collapseSpeed: 0,
+	//   onSlice: function(e){ return false; }, // function() {}
+	//   beforeExpand: function(e){ return false; }, // function() {},
+	//   afterExpand: function(e){ return false; }, // function() {},
+	//   onCollapse: function(e){ return false; } // function(byUser) {}	
+	// });
+  
+	//append "student" or "students" to .seekers/.sought div
+	doPlurals();
+
+	//clicking on sort changes the styles of all of them
+	$('th button').click(function(e){
+		e.preventDefault();
+		$('th button').each(function(){ 
+			//$(this).removeAttr('disabled'); 
+			$(this).removeClass('btn-primary');
+		});
+		//$(this).attr('disabled','disabled');
+		$(this).addClass('btn-primary');
+		return false;
+	});
+
+	//hitting respond closes the response listing and then hides the "show" button, and displays the respond div
+	$('.respond_btn').live('click',function(e){
+		e.preventDefault();
+		$(this).hide();
+		$(this).siblings('.toggle_responses').hide();
+
+		$(this).closest('.info').find('.help-inline').remove();
+		$(this).closest('.info').find('.error').removeClass('error');
+		$(this).closest('.info').find('.respond_nopost').attr('checked',false);
+
+		var theForm = $(this).parent().find('.form-horizontal.respond');
+		theForm.show();
+		theForm.find('button').show();
+
+		//also show/hide the right fields of the form, based on the number of students being sought.
+		var numSought = $(this).closest('.info').siblings('.sought').text(); //figure out the number of students being sought
+		if (/\d/.test(numSought)) {
+			numSought = numSought.match(/\d/g);
+			numSought = numSought.join("");
+
+			if (numSought == 1) {
+				theForm.find('.single').show();
+				theForm.find('.multi').hide();
+			} else {
+				theForm.find('.single').hide();
+				theForm.find('.multi').show();				
+			}
+		} else {
+			theForm.find('.single').hide();
+			theForm.find('.multi').show();		
+		}
+		return false;
+	});
+
+	//switch a form from active to inactive, vice versa
+	//sorry renars, i couldn't get this to work with 'on' or 'delegate'…
+	$('.edit_status').live('change',function() { 
+		togglePostState(this); 
+	});
+
+	//hitting any button in respond form makes form disappear, shows default buttons again
+	$('.respond button.cancel_response').click(function(e){
+		e.preventDefault();
+		$(this).closest('.form-horizontal').hide().find('input[type="text"]').each(function(){	//and, clear all fields..
+			//$(this).val('');
+		});
+		$(this).closest('.form-horizontal').parent().find('.respond_btn, .toggle_responses').show();
+		return false;
+	});
+
+	//when we edit a post, we hide the edit button, hide the post content, and display the form
+/*
+	$('.edit_post_btn').live('click',function(e){
+		e.preventDefault();
+		$(this).hide();
+		$(this).closest('.info').find('.expandable').hide();
+
+		var theForm = $(this).closest('.info').find('.edit_post');
+		theForm.show();
+
+		//display the correct form fields, based on the number of students sought
+		var numSought = $(this).closest('.info').siblings('.sought').text(); //figure out the number of students being sought
+		numSought = numSought.match(/\d/g);
+		numSought = numSought.join("");
+
+		if (numSought == 1) {
+			theForm.find('.single').show();
+			theForm.find('.multi').hide();
+		} else {
+			theForm.find('.single').hide();
+			theForm.find('.multi').show();		
+		}
+		return false;
+	});
+*/
+
+	//any button in the edit_post form closes the form and shows the post content & edit button
+	$('.edit_post button').click(function(e){
+		e.preventDefault();
+		$(this).closest('.form-horizontal').hide();
+		$(this).closest('.info').find('.expandable').show();
+		//$(this).closest('.info').find('.edit_post_btn').show();
+		return false;
+	});
+
+	//hitting new post button displays the form, hides the button, clears the fields, sets default fields visible
+	$('.new_post_btn').click(function(e){
+		e.preventDefault();
+		$(this).hide();
+		$('.new_post').show().find('input[type="text"]').each(function(){
+			if (!($(this).attr('id') == 'new_post_name') && !($(this).attr('id') == 'new_post_email')) $(this).val('');
+		});
+		$('#sought_team').closest('div').css('margin-top','0');
+
+		//get rid of lingering error messages
+		$('.new_post').find('.help-inline').remove();
+		$('.new_post').closest('.form-horizontal').find('.error').removeClass('error');
+
+		//select single student looking for team
+		$('#sought_team').attr('checked','checked');
+		$('#new_post_seekers').val('1');
+
+		//display single person fields as default
+		$('.new_post').find('.single').show();
+		$('.new_post').find('.multi').hide();
+		$('label[for="sought_team"]').show().addClass('alone');
+		$('#sought_team, #sought_num, #new_post_sought_select').hide();
+
+		return false;
+	});
+
+	//display proper fields (single vs multi) in new post creation form based on selections
+	$('#new_post_seekers').change(function(){
+		if ($(this).val() == 1) {
+			$('#sought_team').closest('div').css('margin-top','0');
+			$('.new_post').find('.single').show();
+			$('.new_post').find('.multi').hide();
+			$('#sought_team').attr('checked','checked');
+			$('label[for="sought_team"]').show().addClass('alone');
+			$('#sought_team, #sought_num, #new_post_sought_select').hide();
+		} else {
+			$('.new_post').find('.single').hide();
+			$('.new_post').find('.multi').show();
+			$('#sought_num').attr('checked','checked');
+			$('#new_post_sought_select').show();
+			$('label[for="sought_team"]').removeClass('alone');
+			$('#sought_num, #sought_team, label[for="sought_team"]').hide();
+			$('#sought_team').closest('div').css('margin-top','-18px');
+		}
+	});
+
+	//close the new post form when you hit the buttons inside the form
+	$('.cancel_new_post').click(function(e){
+		e.preventDefault();
+		$('.new_post').hide().find('input[type="text"]').each(function(){
+			if (!($(this).attr('id') == 'new_post_name') && !($(this).attr('id') == 'new_post_email')) $(this).val('');
+		});
+		$('.new_post_btn').show();
+		return false;
+	});
+
+});
